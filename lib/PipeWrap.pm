@@ -171,7 +171,8 @@ sub wildcard{
 	return $RealBin;
     }elsif($p =~ /^opt(\{.*[\]\}])/){
 	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
-	return eval '$self->opt->'."$1";
+	$res = eval '$self->opt->'."$1";
+	return ref $res eq ARRAY ? "@$res" : $res;
     }elsif(($rel, $idx, $res) = $p =~ /^\[(-)?(\d+)\](.*)?/){
         $tix = $rel 
 	    ? $self->{tasks}[$self->{_task_index}{$tid} - $idx][0]  # relative task idx
