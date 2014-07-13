@@ -39,7 +39,7 @@ use warnings;
 no warnings 'qw';
 
 use Carp;
-use Getopt::Long qw(:config no_ignore_case bundling);
+use Getopt::Long qw(:config no_ignore_case);
 use Pod::Usage;
 use Log::Log4perl qw(:no_extra_logdie_message);
 use Log::Log4perl::Level;
@@ -79,13 +79,15 @@ Log::Log4perl->init( \q(
 
 #-----------------------------------------------------------------------------#
 # GetOptions
-my %opt;
+my %opt = (skip => []); 
 
 GetOptions( # use %opt (Cfg) as defaults
 	\%opt, qw(
                 out|o=s
                 dir|d=s
 		threads|t=i
+		continue:s
+		skip=s{2}
 		create_config|create-config:s
 		config|c=s
 		version|V!
@@ -154,18 +156,27 @@ $L->debug(Dumper(\%opt));
 
 my $pl = PipeWrap->new(
     tasks => $opt{tasks},
-    continue => 0,
-    );
+    continue => $opt{continue},
+    skip => $opt{skip},
+);
 
-print Dumper($pl);
 
 #print Dumper($pl);
 #print Dumper($pl->tasks);
 #print Dumper($pl->tdx);
 
+#for(1..2){
+#    $pl->run();
+#    #print Dumper($pl->task);
+#}
 
-$pl->run();
-print Dumper($pl);
+
+my $tid;
+1 while $pl->run();
+
+#do {print "running next task\n"} while $pl->run();
+
+#print Dumper($pl);
 
 
 

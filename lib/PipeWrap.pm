@@ -37,17 +37,18 @@ sub new{
     $self = {
 	# default
 	tasks => [],
-	continue => 0,
+	continue => undef,
 	skip => [],
 	# overwrite
 	@_,
 	# protected privates
+	_task => 0,
 	_task_index => {},
 	_trace => {
 	    task_results => {},
 	    init_time => undef,
 	    update_time => undef,
-	    last_task => undef,
+	    task_done => -1,
 	},
 	_trace_file => basename($Script, qw(.pl .PL)).".trace",
     };
@@ -56,8 +57,8 @@ sub new{
 
     $self->index_tasks();
 
-    $self->continue 
-	? $self->load_trace()
+    defined($self->continue) 
+	? $self->load_trace($self->continue)
 	: $self->init_trace();
 
     return $self;
@@ -67,7 +68,7 @@ sub index_tasks{
     my ($self) = @_;
     my $i=0;
     my %task_index;
-    foreach my $t ($self->tasks){
+    foreach my $t (@{$self->tasks}){
 	$L->logdie("Non-unique task id: ", $task_index{$t->[0]}) if exists $task_index{$t->[0]};
 	$task_index{$t->[0]} = $i;
 	$i++;
@@ -84,20 +85,54 @@ sub index_tasks{
 
 sub run{
     my ($self) = @_;
-    foreach my $task ($self->tasks){
+    if($self->task >= @{$self->tasks}){
+	$self->task(0); # reset to 0
+	$L->logdie("Trying to run a task outside the index");
+	return undef;
+    }
+
+
+    # prep task
+    my $task = $self->tasks->[$self->task];
+    my ($tid, $cmd, $res_parser);
+    $tid = $self->tasks->[$self->task][0];
+    
+    # skip
+    if(grep{$tid =~ $_}@{$self->skip}){
+
+	$L->info("Skipping '$tid', reusing old results if requested by other tasks");
+
+    }else{
+
+	# resolve dependencies
 	$self->resolve_task($task);
-	my ($tid, $cmd, $res_parser) = @$task;
-	$L->info("$tid: @$cmd");
+
+	($tid, $cmd, $res_parser) = @$task;
+	$L->info("Running '$tid': @$cmd ");
+
+	# run task
 	open(my $cmdh, "@$cmd |") or $L->logdie($!);
+
+	# retrieve results
 	$self->task_results->{$tid} = $res_parser ? $self->$res_parser($cmdh) : <$cmdh>;
 	close $cmdh;
+	$L->logcroak("$? $@") if ($? || $@);
+
     }
-    
 
-    $L->logcroak("$? $@") if ($? || $@);
-#    $L->debug("Returned: ",@re);
-
+    # store results
     $self->update_trace();
+
+    # incr. task
+    $self->{_task}++;
+
+    if($self->task >= @{$self->tasks}){
+	$self->task(0); # reset to 0
+	$L->warn("Task sequence completed");
+	return undef;
+    }
+
+    return $tid;
 }
 
 
@@ -165,10 +200,35 @@ Load persistent trace.
 =cut
 
 sub load_trace{
-    my ($self) = @_;
-    return -e $self->trace_file
+    my ($self, $continue) = @_;
+    -e $self->trace_file
 	? $self->trace(retrieve($self->trace_file))
 	: $self->init_trace;
+
+    if(defined($continue) && length $continue){ # continue from specific task
+	if(exists $self->task_index->{$continue}){
+	    if($self->task_index->{$continue} > $self->task_index->{$self->trace_task_done}+1){
+		$L->logdie("Cannot continue from task '$continue', previous run ended earlier '",$self->trace_task_done,"'");
+	    }else{
+		$L->info("Continuing after task '", $continue, "'");
+		$self->task($self->task_index->{$continue});
+	    }
+	}else{
+	    $L->logdie("Cannot continue, task '", $continue, "' unknown");
+	}
+    }else{ # continue from last completed task
+	if(exists $self->task_index->{$self->trace_task_done}){
+	    if($self->task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
+		$L->info("Previous sequence finished. Restarting task sequence");
+		$self->task(0);
+	    }else{
+		$L->info("Detected unfinished sequence, continuing after task '", $self->trace_task_done, "'");
+		$self->task($self->task_index->{$self->trace_task_done} + 1);
+	    }
+	}else{
+	    $L->logdie("Cannot continue, previous run ended with task '", $self->trace_task_done, "', which is not part of the current sequence");
+	}
+    }
 }
 
 =head2 update_trace
@@ -181,7 +241,7 @@ sub update_trace{
     my ($self) = @_;
 
     $self->trace_update_time(time());
-
+    $self->trace_task_done($self->tasks->[$self->task][0]);
     store($self->trace, $self->trace_file)
     	|| $L->logdie("Cannot store updated trace file: ".$self->trace_file);
     return $self->trace;
@@ -192,11 +252,11 @@ sub update_trace{
 
 
 sub tasks{
-    my ($self, @tasks) = @_;
-    if(@tasks){
-	$self->{tasks} = \@tasks;
+    my ($self, $tasks) = @_;
+    if(defined($tasks)){
+	$self->{tasks} = $tasks;
     }
-    return @{$self->{tasks}};
+    return $self->{tasks};
 }
 
 sub task_index{
@@ -223,6 +283,14 @@ sub trace{
     return $self->{_trace};
 }
 
+sub skip{
+    my ($self, $skip) = @_;
+    if(defined($skip)){
+	$self->{skip} = $skip;
+    }
+    return $self->{skip};
+}
+
 sub continue{
     my ($self, $continue, $force) = @_;
     if(defined($continue) || $force){
@@ -230,6 +298,15 @@ sub continue{
     }
     return $self->{continue};
 }
+
+sub task{
+    my ($self, $task, $force) = @_;
+    if(defined($task) || $force){
+	$self->{_task} = $task;
+    }
+    return $self->{_task};
+}
+
 
 sub trace_file{
     my ($self, $trace_file, $force) = @_;
@@ -255,6 +332,13 @@ sub trace_init_time{
     return $self->trace->{init_time};
 }
 
+sub trace_task_done{
+    my ($self, $task_done, $force) = @_;
+    if(defined($task_done) || $force){
+	$self->trace->{task_done} = $task_done;
+    }
+    return $self->trace->{task_done};
+}
 
 
 1;
