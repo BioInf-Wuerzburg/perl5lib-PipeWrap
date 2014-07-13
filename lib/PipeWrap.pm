@@ -36,9 +36,11 @@ sub new{
     # init empty obj
     $self = {
 	# default
+	name => basename($Script, qw(.pl .PL)),
 	tasks => [],
 	continue => undef,
 	skip => [],
+	trace_file => undef,	
 	# overwrite
 	@_,
 	# protected privates
@@ -48,12 +50,13 @@ sub new{
 	    task_results => {},
 	    init_time => undef,
 	    update_time => undef,
-	    task_done => -1,
+	    task_done => undef,
 	},
-	_trace_file => basename($Script, qw(.pl .PL)).".trace",
     };
 
     bless $self, $proto;    
+
+    $self->trace_file($self->name.".trace") unless $self->trace_file;
 
     $self->index_tasks();
 
@@ -128,7 +131,7 @@ sub run{
 
     if($self->task >= @{$self->tasks}){
 	$self->task(0); # reset to 0
-	$L->warn("Task sequence completed");
+	$L->warn($self->name, " pipeline completed");
 	return undef;
     }
 
@@ -205,6 +208,12 @@ sub load_trace{
 	? $self->trace(retrieve($self->trace_file))
 	: $self->init_trace;
 
+    if(! defined($self->trace_task_done) || ! length $self->trace_task_done){
+	$self->task(0);
+	$L->info("Running ",$self->name," from the beginning, no previous runs detected.");
+	return $self->trace;
+    }
+
     if(defined($continue) && length $continue){ # continue from specific task
 	if(exists $self->task_index->{$continue}){
 	    if($self->task_index->{$continue} > $self->task_index->{$self->trace_task_done}+1){
@@ -219,16 +228,17 @@ sub load_trace{
     }else{ # continue from last completed task
 	if(exists $self->task_index->{$self->trace_task_done}){
 	    if($self->task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
-		$L->info("Previous sequence finished. Restarting task sequence");
+		$L->info("Restarting ",$self->name,", previous run completed");
 		$self->task(0);
 	    }else{
-		$L->info("Detected unfinished sequence, continuing after task '", $self->trace_task_done, "'");
+		$L->info("Detected unfinished ",$self->name," run, continuing after task '", $self->trace_task_done, "'");
 		$self->task($self->task_index->{$self->trace_task_done} + 1);
 	    }
 	}else{
-	    $L->logdie("Cannot continue, previous run ended with task '", $self->trace_task_done, "', which is not part of the current sequence");
+	    $L->logdie("Cannot continue, previous ",$self->name," run ended with task '", $self->trace_task_done, "', which is not part of the current task sequence");
 	}
     }
+    return $self->trace;
 }
 
 =head2 update_trace
@@ -299,6 +309,15 @@ sub continue{
     return $self->{continue};
 }
 
+sub name{
+    my ($self, $name, $force) = @_;
+    if(defined($name) || $force){
+	$self->{name} = $name;
+    }
+    return $self->{name};
+}
+
+
 sub task{
     my ($self, $task, $force) = @_;
     if(defined($task) || $force){
@@ -311,9 +330,9 @@ sub task{
 sub trace_file{
     my ($self, $trace_file, $force) = @_;
     if(defined($trace_file) || $force){
-	$self->{_trace_file} = $trace_file;
+	$self->{trace_file} = $trace_file;
     }
-    return $self->{_trace_file};
+    return $self->{trace_file};
 }
 
 sub trace_update_time{

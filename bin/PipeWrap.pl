@@ -87,7 +87,8 @@ GetOptions( # use %opt (Cfg) as defaults
                 dir|d=s
 		threads|t=i
 		continue:s
-		skip=s{2}
+		skip=s{,}
+		stop=s
 		create_config|create-config:s
 		config|c=s
 		version|V!
@@ -158,6 +159,7 @@ my $pl = PipeWrap->new(
     tasks => $opt{tasks},
     continue => $opt{continue},
     skip => $opt{skip},
+    stop => $opt{stop}
 );
 
 
