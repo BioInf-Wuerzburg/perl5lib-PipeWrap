@@ -166,6 +166,8 @@ sub wildcard{
 
     if(! $p){
 	return $tid; # this task
+    }elsif($p =~ /^bin$/i){
+	return $RealBin;
     }elsif(($rel, $idx, $res) = $p =~ /^\[(-)?(\d+)\](.*)?/){
         $tix = $rel 
 	    ? $self->{tasks}[$self->{_task_index}{$tid} - $idx][0]  # relative task idx
