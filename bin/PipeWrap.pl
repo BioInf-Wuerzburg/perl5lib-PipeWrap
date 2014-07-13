@@ -159,7 +159,6 @@ my $pl = PipeWrap->new(
     tasks => $opt{tasks},
     continue => $opt{continue},
     skip => $opt{skip},
-    stop => $opt{stop}
 );
 
 
@@ -173,9 +172,10 @@ my $pl = PipeWrap->new(
 #}
 
 
-my $tid;
-1 while $pl->run();
 
+while(my $tid = $pl->run()){
+    last if $tid eq $opt{stop};
+}
 #do {print "running next task\n"} while $pl->run();
 
 #print Dumper($pl);
