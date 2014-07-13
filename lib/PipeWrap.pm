@@ -41,6 +41,7 @@ sub new{
 	continue => undef,
 	skip => [],
 	trace_file => undef,	
+	opt => {},
 	# overwrite
 	@_,
 	# protected privates
@@ -168,6 +169,9 @@ sub wildcard{
 	return $tid; # this task
     }elsif($p =~ /^bin$/i){
 	return $RealBin;
+    }elsif($p =~ /^opt(\{.*[\]\}])/){
+	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
+	return eval '$self->opt->'."$1";
     }elsif(($rel, $idx, $res) = $p =~ /^\[(-)?(\d+)\](.*)?/){
         $tix = $rel 
 	    ? $self->{tasks}[$self->{_task_index}{$tid} - $idx][0]  # relative task idx
@@ -268,6 +272,14 @@ sub tasks{
 	$self->{tasks} = $tasks;
     }
     return $self->{tasks};
+}
+
+sub opt{
+    my ($self, $opt) = @_;
+    if(defined($opt)){
+	$self->{opt} = $opt;
+    }
+    return $self->{opt};
 }
 
 sub task_index{

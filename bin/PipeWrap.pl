@@ -159,6 +159,7 @@ my $pl = PipeWrap->new(
     tasks => $opt{tasks},
     continue => $opt{continue},
     skip => $opt{skip},
+    opt => {wtf => "WTF"}
 );
 
 
