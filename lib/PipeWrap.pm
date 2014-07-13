@@ -228,10 +228,9 @@ sub load_trace{
     }else{ # continue from last completed task
 	if(exists $self->task_index->{$self->trace_task_done}){
 	    if($self->task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
-		$L->info("Restarting ",$self->name,", previous run completed");
-		$self->task(0);
+		$L->logdie("Complete ",$self->name," run present, disable --continue to restart");
 	    }else{
-		$L->info("Detected unfinished ",$self->name," run, continuing after task '", $self->trace_task_done, "'");
+		$L->info("Unfinished ",$self->name," run present, continuing after task '", $self->trace_task_done, "'");
 		$self->task($self->task_index->{$self->trace_task_done} + 1);
 	    }
 	}else{

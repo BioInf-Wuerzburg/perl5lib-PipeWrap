@@ -174,7 +174,7 @@ my $pl = PipeWrap->new(
 
 
 while(my $tid = $pl->run()){
-    last if $tid eq $opt{stop};
+    last if $opt{stop} && $tid eq $opt{stop};
 }
 #do {print "running next task\n"} while $pl->run();
 
