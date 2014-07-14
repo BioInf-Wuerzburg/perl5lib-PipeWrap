@@ -36,7 +36,7 @@ sub new{
     # init empty obj
     $self = {
 	# default
-	name => basename($Script, qw(.pl .PL)),
+	id => basename($Script, qw(.pl .PL)),
 	tasks => [],
 	continue => undef,
 	skip => [],
@@ -323,12 +323,12 @@ sub continue{
     return $self->{continue};
 }
 
-sub name{
-    my ($self, $name, $force) = @_;
-    if(defined($name) || $force){
-	$self->{name} = $name;
+sub id{
+    my ($self, $id, $force) = @_;
+    if(defined($id) || $force){
+	$self->{id} = $id;
     }
-    return $self->{name};
+    return $self->{id};
 }
 
 
