@@ -271,62 +271,9 @@ sub update_trace{
 ##----------------------------------------------------------------------------##
 #Accessors
 
+=head2 id
 
-sub tasks{
-    my ($self, $tasks, $force) = @_;
-    if(defined($tasks) || $force){
-	$self->{tasks} = $tasks;
-    }
-    return $self->{tasks};
-}
-
-sub opt{
-    my ($self, $opt, $force) = @_;
-    if(defined($opt) ||  $force){
-	$self->{opt} = $opt;
-    }
-    return $self->{opt};
-}
-
-sub task_index{
-    my ($self, $task_index, $force) = @_;
-    if(defined($task_index) || $force){
-	$self->{_task_index} = $task_index;
-    }
-    return $self->{_task_index};
-}
-
-sub task_results{
-    my ($self, $task_results, $force) = @_;
-    if(defined($task_results || $force)){
-	$self->{_trace}{task_results} = $task_results;
-    }
-    return $self->{_trace}{task_results};
-}
-
-sub trace{
-    my ($self, $trace, $force) = @_;
-    if(defined($trace || $force)){
-	$self->{_trace} = $trace;
-    }
-    return $self->{_trace};
-}
-
-sub skip{
-    my ($self, $skip, $force) = @_;
-    if(defined($skip) || $force){
-	$self->{skip} = $skip;
-    }
-    return $self->{skip};
-}
-
-sub continue{
-    my ($self, $continue, $force) = @_;
-    if(defined($continue) || $force){
-	$self->{continue} = $continue;
-    }
-    return $self->{continue};
-}
+=cut
 
 sub id{
     my ($self, $id, $force) = @_;
@@ -336,6 +283,69 @@ sub id{
     return $self->{id};
 }
 
+=head2 tasks
+
+=cut
+
+sub tasks{
+    my ($self, $tasks, $force) = @_;
+    if(defined($tasks) || $force){
+	$self->{tasks} = $tasks;
+    }
+    return $self->{tasks};
+}
+
+=head2 opt
+
+=cut
+
+sub opt{
+    my ($self, $opt, $force) = @_;
+    if(defined($opt) ||  $force){
+	$self->{opt} = $opt;
+    }
+    return $self->{opt};
+}
+
+=head2 task_index
+
+=cut
+
+sub task_index{
+    my ($self, $task_index, $force) = @_;
+    if(defined($task_index) || $force){
+	$self->{_task_index} = $task_index;
+    }
+    return $self->{_task_index};
+}
+
+=head2 skip
+
+=cut
+
+sub skip{
+    my ($self, $skip, $force) = @_;
+    if(defined($skip) || $force){
+	$self->{skip} = $skip;
+    }
+    return $self->{skip};
+}
+
+=head2 continue
+
+=cut
+
+sub continue{
+    my ($self, $continue, $force) = @_;
+    if(defined($continue) || $force){
+	$self->{continue} = $continue;
+    }
+    return $self->{continue};
+}
+
+=head2 task
+
+=cut
 
 sub task{
     my ($self, $task, $force) = @_;
@@ -345,6 +355,9 @@ sub task{
     return $self->{_task};
 }
 
+=head2 trace_file
+
+=cut
 
 sub trace_file{
     my ($self, $trace_file, $force) = @_;
@@ -354,6 +367,43 @@ sub trace_file{
     return $self->{trace_file};
 }
 
+=head2 trace
+
+=cut
+
+sub trace{
+    my ($self, $trace, $force) = @_;
+    if(defined($trace || $force)){
+	$self->{_trace} = $trace;
+    }
+    return $self->{_trace};
+    # privates
+    for my $acc (qw(trace task task_index)){
+	can_ok($Class, $acc);
+	my $cache;
+	is(($cache = $o->$acc), $o->{'_'.$acc}, $Class."->".$acc." get");
+	is($o->$acc("wtf"), "wtf", $Class."->".$acc." set");
+	is($o->$acc(undef,1), undef, $Class."->".$acc." unset");
+	is($o->$acc($cache), $o->{'_'.$acc}, $Class."->".$acc." reset");
+    }
+}
+
+=head2 trace_task_results
+
+=cut
+
+sub trace_task_results{
+    my ($self, $trace_task_results, $force) = @_;
+    if(defined($trace_task_results || $force)){
+	$self->trace->{task_results} = $trace_task_results;
+    }
+    return $self->trace->{task_results};
+}
+
+=head2 trace_update_time
+
+=cut
+
 sub trace_update_time{
     my ($self, $trace_update_time, $force) = @_;
     if(defined($trace_update_time) || $force){
@@ -362,6 +412,10 @@ sub trace_update_time{
     return $self->trace->{update_time};
 }
 
+=head2 trace_init_time
+
+=cut
+
 sub trace_init_time{
     my ($self, $trace_init_time, $force) = @_;
     if(defined($trace_init_time) || $force){
@@ -369,6 +423,10 @@ sub trace_init_time{
     }
     return $self->trace->{init_time};
 }
+
+=head2 trace_task_done
+
+=cut
 
 sub trace_task_done{
     my ($self, $task_done, $force) = @_;
