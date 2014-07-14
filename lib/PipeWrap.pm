@@ -268,48 +268,48 @@ sub update_trace{
 
 
 sub tasks{
-    my ($self, $tasks) = @_;
-    if(defined($tasks)){
+    my ($self, $tasks, $force) = @_;
+    if(defined($tasks) || $force){
 	$self->{tasks} = $tasks;
     }
     return $self->{tasks};
 }
 
 sub opt{
-    my ($self, $opt) = @_;
-    if(defined($opt)){
+    my ($self, $opt, $force) = @_;
+    if(defined($opt) ||  $force){
 	$self->{opt} = $opt;
     }
     return $self->{opt};
 }
 
 sub task_index{
-    my ($self, $task_index) = @_;
-    if(defined($task_index)){
+    my ($self, $task_index, $force) = @_;
+    if(defined($task_index) || $force){
 	$self->{_task_index} = $task_index;
     }
     return $self->{_task_index};
 }
 
 sub task_results{
-    my ($self, $task_results) = @_;
-    if(defined($task_results)){
+    my ($self, $task_results, $force) = @_;
+    if(defined($task_results || $force)){
 	$self->{_trace}{task_results} = $task_results;
     }
     return $self->{_trace}{task_results};
 }
 
 sub trace{
-    my ($self, $trace) = @_;
-    if(defined($trace)){
+    my ($self, $trace, $force) = @_;
+    if(defined($trace || $force)){
 	$self->{_trace} = $trace;
     }
     return $self->{_trace};
 }
 
 sub skip{
-    my ($self, $skip) = @_;
-    if(defined($skip)){
+    my ($self, $skip, $force) = @_;
+    if(defined($skip) || $force){
 	$self->{skip} = $skip;
     }
     return $self->{skip};
