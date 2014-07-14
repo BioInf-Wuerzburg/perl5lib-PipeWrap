@@ -1,6 +1,7 @@
 package PipeWrap::Task;
 
 use Log::Log4perl qw(:easy :no_extra_logdie_message);
+use overload '""' => \&id;
 
 #-----------------------------------------------------------------------------#
 # Globals
@@ -46,9 +47,22 @@ sub new{
 }
 
 
-# =head2 run
+=head2 run
 
-# =cut
+=cut
+
+sub run{
+    my ($self) = @_;
+    # run task
+    open(my $cmdh, "@$cmd |") or $L->logdie($!);
+    
+    # retrieve results
+    $re = $res_parser ? $self->$res_parser($cmdh) : do{local $/; <$cmdh>};
+    close $cmdh;
+    $L->logcroak("$tid exited:$? $@\n", $re) if ($? || $@);
+    
+    return $re;
+}
 
 
 ##----------------------------------------------------------------------------##
