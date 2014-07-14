@@ -118,9 +118,9 @@ sub run{
 	open(my $cmdh, "@$cmd |") or $L->logdie($!);
 
 	# retrieve results
-	$self->task_results->{$tid} = $res_parser ? $self->$res_parser($cmdh) : <$cmdh>;
+	$self->task_results->{$tid} = $res_parser ? $self->$res_parser($cmdh) : do{local $/; <$cmdh>};
 	close $cmdh;
-	$L->logcroak("$? $@") if ($? || $@);
+	$L->logcroak("$tid exited:$? $@\n", $self->task_results->{$tid}) if ($? || $@);
 
     }
 
