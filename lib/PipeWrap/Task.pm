@@ -2,6 +2,7 @@ package PipeWrap::Task;
 
 use Log::Log4perl qw(:easy :no_extra_logdie_message);
 use overload '""' => \&id;
+use Data::Dumper;
 
 #-----------------------------------------------------------------------------#
 # Globals
@@ -35,7 +36,7 @@ sub new{
     $self = {
 	id => '',
 	cmd => [],
-	parser => [],
+	parser => undef,
 	# overwrite
 	@_,
 	# protected privates
@@ -54,13 +55,15 @@ sub new{
 sub run{
     my ($self) = @_;
     # run task
-    open(my $cmdh, "@$cmd |") or $L->logdie($!);
+    open(my $cmdh, "@{$self->cmd()} |") or $L->logdie($!);
     
     # retrieve results
-    $re = $res_parser ? $self->$res_parser($cmdh) : do{local $/; <$cmdh>};
+    my $re = ref $self->parser eq 'CODE' ? $self->parser($cmdh) : do{local $/; <$cmdh>};
     close $cmdh;
     $L->logcroak("$tid exited:$? $@\n", $re) if ($? || $@);
     
+    $L->debug("$self returned:\n".Dumper($re));
+
     return $re;
 }
 
