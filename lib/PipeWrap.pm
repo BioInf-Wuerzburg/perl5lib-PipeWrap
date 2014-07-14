@@ -5,6 +5,11 @@ use FindBin qw($RealBin $Script);
 use File::Basename;
 use Storable;
 
+use Data::Dumper;
+
+use overload '""' => \&id;
+use PipeWrap::Task;
+
 #-----------------------------------------------------------------------------#
 # Globals
 
