@@ -62,7 +62,10 @@ sub new{
 
     bless $self, $proto;    
 
-    $self->trace_file($self->name.".trace") unless $self->trace_file;
+    $self->trace_file($self->id.".trace") unless $self->trace_file;
+
+
+    $self->bless_tasks();
 
     $self->index_tasks();
 
@@ -73,13 +76,31 @@ sub new{
     return $self;
 }
 
+
+
+=head2 bless_tasks
+
+=cut
+
+sub bless_tasks{
+    my ($self) = @_;
+
+    return map{
+	ref($_) eq 'PipeWrap::Task' ? $_ : PipeWrap::Task->new(%$_) 
+    }@{$self->tasks}
+}
+
+=head2 index_tasks
+
+=cut
+
 sub index_tasks{
     my ($self) = @_;
     my $i=0;
     my %task_index;
-    foreach my $t (@{$self->tasks}){
-	$L->logdie("Non-unique task id: ", $task_index{$t->[0]}) if exists $task_index{$t->[0]};
-	$task_index{$t->[0]} = $i;
+    foreach my $task (@{$self->tasks}){
+	$L->logdie("Non-unique task id: $task") if exists $task_index{"$task"};
+	$task_index{"$task"} = $i;
 	$i++;
     }
     
@@ -165,6 +186,10 @@ sub resolve_task{
    return $cmd;
 }
 
+
+=head2 wildcard
+
+=cut
 
 sub wildcard{
     my ($self, $tid, $p) = @_;
