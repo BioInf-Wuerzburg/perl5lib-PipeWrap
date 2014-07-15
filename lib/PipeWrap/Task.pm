@@ -58,7 +58,11 @@ sub run{
     open(my $cmdh, "@{$self->cmd()} |") or $L->logdie($!);
     
     # retrieve results
-    my $re = ref $self->parser eq 'CODE' ? $self->parser($cmdh) : do{local $/; <$cmdh>};
+    my $re;
+
+    my $parser = $self->parser || "parse_raw";
+    $re = ref $parser eq 'CODE' ? $parser->($cmdh) : $self->$parser($cmdh);
+
     close $cmdh;
     $L->logcroak("$tid exited:$? $@\n", $re) if ($? || $@);
     
@@ -66,6 +70,38 @@ sub run{
 
     return $re;
 }
+
+
+=head2 parse_raw
+
+Simple parser that reads the entire output of the filehandle to a
+string.
+
+=cut
+
+sub parse_raw{
+    my ($self, $fh) = @_;
+    return scalar do{local $/; <$fh>}
+}
+
+
+=head2 parse_csv
+
+Simple parser that splits whitespace separated output into a hash.
+
+=cut
+
+sub parse_csv{
+    my ($self, $fh) = @_;
+    my %re;
+    while(<$fh>){
+        my ($k, $v) = split(/\s+/, $_, 2);
+	chomp($v);
+        $re{$k} = $v;
+    }
+    return \%re;
+}
+
 
 
 ##----------------------------------------------------------------------------##
