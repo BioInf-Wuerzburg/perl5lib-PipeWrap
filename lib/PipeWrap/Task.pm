@@ -62,7 +62,7 @@ sub run{
     close $cmdh;
     $L->logcroak("$tid exited:$? $@\n", $re) if ($? || $@);
     
-    $L->debug("$self returned:\n".Dumper($re));
+    $L->debug("$self returned:\n",  ref $re ? Dumper($re) : $re);
 
     return $re;
 }
