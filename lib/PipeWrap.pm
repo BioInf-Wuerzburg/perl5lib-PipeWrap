@@ -50,7 +50,7 @@ sub new{
 	# overwrite
 	@_,
 	# protected privates
-	_task => 0,
+	_task_iter => 0,
 	_task_index => {},
 	_trace => {
 	    task_results => {},
@@ -64,8 +64,7 @@ sub new{
 
     $self->trace_file($self->id.".trace") unless $self->trace_file;
 
-
-    $self->bless_tasks();
+    print Dumper($self->bless_tasks());
 
     $self->index_tasks();
 
@@ -85,9 +84,11 @@ sub new{
 sub bless_tasks{
     my ($self) = @_;
 
-    return map{
-	ref($_) eq 'PipeWrap::Task' ? $_ : PipeWrap::Task->new(%$_) 
-    }@{$self->tasks}
+    return $self->tasks([
+	map{
+	    ref($_) eq 'PipeWrap::Task' ? $_ : PipeWrap::Task->new(%$_) 
+	}@{$self->tasks}
+	]);
 }
 
 =head2 index_tasks
@@ -115,20 +116,22 @@ sub index_tasks{
 
 sub run{
     my ($self) = @_;
-    if($self->task >= @{$self->tasks}){
-	$self->task(0); # reset to 0
+    if($self->task_iter >= @{$self->tasks}){
+	$self->task_iter(0); # reset to 0
 	$L->logdie("Trying to run a task outside the index");
 	return undef;
     }
 
 
     # prep task
-    my $task = $self->tasks->[$self->task];
-    my ($tid, $cmd, $res_parser);
-    $tid = $self->tasks->[$self->task][0];
+    my $task = $self->current_task;
     
     # skip
-    if(grep{$tid =~ $_}@{$self->skip}){
+    if(grep{
+	$_ =~ /^[\/?]/
+	    ? "$task" =~ $_
+	    : "$task" eq $_
+       }@{$self->skip}){
 
 	$L->info("Skipping '$tid', reusing old results if requested by other tasks");
 
@@ -137,32 +140,24 @@ sub run{
 	# resolve dependencies
 	$self->resolve_task($task);
 
-	($tid, $cmd, $res_parser) = @$task;
-	$L->info("Running '$tid': @$cmd ");
+	$L->info("Running '$task': @{$task->cmd()}");
 
-	# run task
-	open(my $cmdh, "@$cmd |") or $L->logdie($!);
-
-	# retrieve results
-	$self->task_results->{$tid} = $res_parser ? $self->$res_parser($cmdh) : do{local $/; <$cmdh>};
-	close $cmdh;
-	$L->logcroak("$tid exited:$? $@\n", $self->task_results->{$tid}) if ($? || $@);
-
+	$self->trace_task_results->{"$task"} = $task->run();
     }
 
     # store results
     $self->update_trace();
 
     # incr. task
-    $self->{_task}++;
+    $self->{_task_iter}++;
 
-    if($self->task >= @{$self->tasks}){
-	$self->task(0); # reset to 0
-	$L->warn($self->name, " pipeline completed");
+    if($self->task_iter >= @{$self->tasks}){
+	$self->task_iter(0); # reset to 0
+	$L->warn($self->id, " pipeline completed");
 	return undef;
     }
 
-    return $tid;
+    return "$task";
 }
 
 
@@ -172,8 +167,8 @@ sub run{
 
 sub resolve_task{
    my ($self, $task) = @_;
-   my $tid = $task->[0];
-   my $cmd = $task->[1];
+   my $tid = $task->id;
+   my $cmd = $task->cmd;
 
    for(my $i=0;$i<@$cmd; $i++){
        my $x;
@@ -205,8 +200,8 @@ sub wildcard{
 	return ref $res eq ARRAY ? "@$res" : $res;
     }elsif(($rel, $idx, $res) = $p =~ /^\[(-)?(\d+)\](.*)?/){
         $tix = $rel 
-	    ? $self->{tasks}[$self->{_task_index}{$tid} - $idx][0]  # relative task idx
-	    : $self->{tasks}[$self->{_task_index}{$idx}][0];        # absolute task idx
+	    ? $self->tasks->[$self->task_index->{$tid} - $idx]->id  # relative task idx
+	    : $self->tasks->[$self->task_index->{$idx}]->id;        # absolute task idx
     	return $res ? eval '$self->task_results->'."{$tix}".$res : $tix;
     }elsif(($tix, $res) = $p =~ /^\{([^}]+)\}(.*)?/){
     	return $res ? eval '$self->task_results->'."{$tix}".$res : $tix;
@@ -287,11 +282,24 @@ sub update_trace{
     my ($self) = @_;
 
     $self->trace_update_time(time());
-    $self->trace_task_done($self->tasks->[$self->task][0]);
+    $self->trace_task_done($self->current_task->id);
     store($self->trace, $self->trace_file)
     	|| $L->logdie("Cannot store updated trace file: ".$self->trace_file);
     return $self->trace;
 }
+
+=head2 current_task
+
+Get the current task, uses $self->task_iter to determine current
+pipeline status.
+
+=cut
+
+sub current_task{
+    my ($self) = @_;
+    return $self->tasks->[$self->task_iter];
+}
+
 
 ##----------------------------------------------------------------------------##
 #Accessors
@@ -368,16 +376,16 @@ sub continue{
     return $self->{continue};
 }
 
-=head2 task
+=head2 
 
 =cut
 
-sub task{
-    my ($self, $task, $force) = @_;
-    if(defined($task) || $force){
-	$self->{_task} = $task;
+sub task_iter{
+    my ($self, $task_iter, $force) = @_;
+    if(defined($task_iter) || $force){
+	$self->{_task_iter} = $task_iter;
     }
-    return $self->{_task};
+    return $self->{_task_iter};
 }
 
 =head2 trace_file
