@@ -64,7 +64,7 @@ sub new{
 
     $self->trace_file($self->id.".trace") unless $self->trace_file;
 
-    print Dumper($self->bless_tasks());
+    $self->bless_tasks();
 
     $self->index_tasks();
 
