@@ -13,13 +13,18 @@ use lib "$RealBin/../lib/";
 use PipeWrap::Task;
 
 use Log::Log4perl qw(:easy :levels);
-Log::Log4perl->init(\q(
-        log4perl.rootLogger                               = DEBUG, Screen
+
+my $level = @ARGV && $ARGV[0] =~ /^--?d/ ? "DEBUG" : "WARN" ;
+
+Log::Log4perl->init(\(q(
+        log4perl.rootLogger                               = ).$level.q(, Screen
         log4perl.appender.Screen                          = Log::Log4perl::Appender::Screen
         log4perl.appender.Screen.stderr                   = 1
         log4perl.appender.Screen.layout                   = PatternLayout
         log4perl.appender.Screen.layout.ConversionPattern = [%d{MM-dd HH:mm:ss}] [%C] %m%n
-));
+)));
+
+my $L = Log::Log4perl->get_logger();
 
 
 #--------------------------------------------------------------------------#
@@ -69,7 +74,7 @@ my $opt = {'wtf' => 'TRUE', array => [7..9]};
 my $ts =  [
     {
 	id => 'foo',
-	cmd => [q( perl -e 'print "task\tfoo\n"')],
+	cmd => [q( perl -e 'print "task\tfoo"')],
     },
     {
 	id => 'bin',
@@ -86,8 +91,8 @@ my $ts =  [
     },
     {
 	id => "res",
-	cmd => [$dum, qw( wtf %[-1]{wtf}% array %{opt}{array}% )],
-	parser => "ParseCsv"
+	cmd => [$dum, qw( wtf %res[-1]{wtf}% foo "%res{foo}%" )],
+	parser => sub{ my $fh = shift; my @re = <$fh>; chomp(@re); return \@re}
     },
     ];
 
@@ -95,7 +100,7 @@ my $ts =  [
 my $o;
 subtest 'new' => sub{
     $o = new_ok($Class, [tasks => $ts, opt => $opt]);
-    print Dumper($o);
+    $L->debug(Dumper($o));
     cmp_deeply($o, $Dmp{pwo}, 'new task object');
 };
 
@@ -140,26 +145,32 @@ subtest 'run' => sub{
     # first
     is($o->current_task->id, $ts->[0]{id}, 'current_task get');
     is($o->run(), $ts->[0]{id}, 'run first task');
-    is($o->trace_task_results->{$ts->[0]{id}}, "task\tfoo\n", 'stored stdout to result');
+    is($o->trace_task_results->{$ts->[0]{id}}, "task\tfoo", 'stored stdout to result');
 
     # second
     is($o->current_task->id, $ts->[1]{id}, 'current_task get');
-    is($o->run(), $ts->[1]{id}, 'run second task');
-    is($o->trace_task_results->{$ts->[1]{id}}, "bin\t$RealBin\n", 'stored stdout to result');
+    is($o->run(), $ts->[1]{id}, 'run second task: %bin%');
+    is($o->trace_task_results->{$ts->[1]{id}}, "bin\t$RealBin/\n", 'stored stdout to result');
 
     # third
     is($o->current_task->id, $ts->[2]{id}, 'current_task get');
-    is($o->run(), $ts->[2]{id}, 'run third task');
+    is($o->run(), $ts->[2]{id}, 'run third task: %-idx/idx%, %{ids}%');
 
     my $re = "prev	bin\nthis	rel\nother	foo\n";
     is($o->trace_task_results->{$ts->[2]{id}}, $re, 'stored stdout to result');
 
     # fourth
     is($o->current_task->id, $ts->[3]{id}, 'current_task get');
-    is($o->run(), $ts->[3]{id}, 'run fourth task');
-    cmp_deeply($o->trace_task_results->{$ts->[3]{id}}, { wtf => 'TRUE', array => 7, 8 => 9}, 'stored stdout to result');
+    is($o->run(), $ts->[3]{id}, 'run fourth task: %opt{..}%, parse_csv');
+    cmp_deeply($o->trace_task_results->{$ts->[3]{id}}, { wtf => 'TRUE', array => 7, 8 => 9}, 'stored stdout via parse_csv');
 
+    # fifth
+    is($o->current_task->id, $ts->[4]{id}, 'current_task get');
+    is($o->run(), $ts->[4]{id}, 'run fifth task: %res{..}%, custom parser');
+    
+    $re = ["wtf\tTRUE", "foo\ttask\tfoo"];
 
+    cmp_deeply($o->trace_task_results->{$ts->[4]{id}}, $re, 'stored stdout via custom parser');
 };
 
 done_testing();

@@ -1,8 +1,8 @@
-pwo => bless( {
+pwo =>  bless( {
                  'tasks' => [
                               bless( {
                                        'cmd' => [
-                                                  ' perl -e \'print "task\\tfoo\\n"\''
+                                                  ' perl -e \'print "task\\tfoo"\''
                                                 ],
                                        'parser' => undef,
                                        'id' => 'foo'
@@ -44,11 +44,11 @@ pwo => bless( {
                                        'cmd' => [
                                                   'perl -e \'for (@ARGV){ $x = $x eq "\\t" ? "\\n" : "\\t"; print $_,$x }\'',
                                                   'wtf',
-                                                  '%[-1]{wtf}%',
-                                                  'array',
-                                                  '%{opt}{array}%'
+                                                  '%res[-1]{wtf}%',
+                                                  'foo',
+                                                  '"%res{foo}%"'
                                                 ],
-                                       'parser' => 'ParseCsv',
+                                       'parser' => ignore(),
                                        'id' => 'res'
                                      }, 'PipeWrap::Task' )
                             ],
@@ -75,8 +75,8 @@ pwo => bless( {
                                     'res' => 4
                                   },
                  '_task_iter' => 0,
+                 'force' => undef,
                  'skip' => [],
                  'id' => '02pipewrap.t',
                  'continue' => undef
                }, 'PipeWrap' )
-
