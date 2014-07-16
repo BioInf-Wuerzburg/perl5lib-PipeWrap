@@ -192,19 +192,37 @@ sub wildcard{
 
     if(! $p){
 	return $tid; # this task
-    }elsif($p =~ /^bin$/i){
-	return $RealBin;
-    }elsif($p =~ /^opt(\{.*[\]\}])/){
+    } # id
+    elsif(($id) = $p =~ /^\{([^\}]+)}$/){
+	$L->logdie("Unknown task id '$id'") unless exists $self->task_index->{$id};
+	return $id;
+    } # idx
+    elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
+        return $rel 
+	    ? $self->tasks->[$self->task_index->{$tid} - $idx]->id  # relative task idx
+	    : $self->tasks->[$self->task_index->{$idx}]->id;        # absolute task idx
+    } # bin
+    elsif($p =~ /^bin$/i){ # bin
+	return $RealBin.'/';
+    } # opt
+    elsif($p =~ /^opt([\{\[].*[\]\}])/){
 	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
 	$res = eval '$self->opt->'."$1";
 	return ref $res eq ARRAY ? "@$res" : $res;
-    }elsif(($rel, $idx, $res) = $p =~ /^\[(-)?(\d+)\](.*)?/){
-        $tix = $rel 
-	    ? $self->tasks->[$self->task_index->{$tid} - $idx]->id  # relative task idx
-	    : $self->tasks->[$self->task_index->{$idx}]->id;        # absolute task idx
-    	return $res ? eval '$self->task_results->'."{$tix}".$res : $tix;
-    }elsif(($tix, $res) = $p =~ /^\{([^}]+)\}(.*)?/){
-    	return $res ? eval '$self->task_results->'."{$tix}".$res : $tix;
+    } # res
+    elsif(($type, $id_idx, $res) = $p =~ /^res
+		(\[-|\{|\[)		# [- or [ or {
+		([^\}\]]+)[\}\]]	# not ] or }, ] or }
+		(.*)?/x			# result access
+	){
+	my $id;
+
+	# idx, abs/rel
+	$id = $self->tasks->[$self->task_index->{$tid} - $id_idx]->id if $type eq '[-';
+	$id = $self->tasks->[$self->task_index->{$id_idx}]->id if $type eq '[';
+	$id = $id_idx if $type eq '{';
+
+    	return $res ? eval '$self->trace_task_results->'."{$id}".$res : eval '$self->trace_task_results->'."{$id}";
     }else{
 	$L->logdie("unknown pattern $p");
     }
