@@ -171,6 +171,16 @@ subtest 'run' => sub{
     $re = ["wtf\tTRUE", "foo\ttask\tfoo"];
 
     cmp_deeply($o->trace_task_results->{$ts->[4]{id}}, $re, 'stored stdout via custom parser');
+
+
+    # while
+    while($o->run){}
+    
+    while($o->run){}
+
+    # missing tests for skip, continue, force
+
+
 };
 
 done_testing();

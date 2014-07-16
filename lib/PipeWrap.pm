@@ -47,6 +47,7 @@ sub new{
 	skip => [],
 	trace_file => undef,	
 	opt => {},
+	force => undef,
 	# overwrite
 	@_,
 	# protected privates
@@ -116,12 +117,13 @@ sub index_tasks{
 
 sub run{
     my ($self) = @_;
-    if($self->task_iter >= @{$self->tasks}){
+    if($self->task_iter == @{$self->tasks}){
 	$self->task_iter(0); # reset to 0
-	$L->logdie("Trying to run a task outside the index");
+	$L->info($self->id, " pipeline completed");
 	return undef;
+    }elsif($self->task_iter > @{$self->tasks}){
+	$L->logdie("Trying to run a task outside the index");
     }
-
 
     # prep task
     my $task = $self->current_task;
@@ -150,12 +152,6 @@ sub run{
 
     # incr. task
     $self->{_task_iter}++;
-
-    if($self->task_iter >= @{$self->tasks}){
-	$self->task_iter(0); # reset to 0
-	$L->warn($self->id, " pipeline completed");
-	return undef;
-    }
 
     return "$task";
 }
@@ -266,12 +262,13 @@ sub load_trace{
 
     if(defined($continue) && length $continue){ # continue from specific task
 	if(exists $self->task_index->{$continue}){
-	    if($self->task_index->{$continue} > $self->task_index->{$self->trace_task_done}+1){
-		$L->logdie("Cannot continue from task '$continue', previous run ended earlier '",$self->trace_task_done,"'");
-	    }else{
-		$L->info("Continuing after task '", $continue, "'");
-		$self->task($self->task_index->{$continue});
+ 	    if($self->task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->task_index->{$continue-1}}){
+		$L->logdie("You want to continue from '$continue', however the previous task ".$self->task_index->{$continue-1}." never finished. Use force to overrule");
 	    }
+	    
+	    $L->info("Continuing after task '", $continue, "'");
+	    $self->task($self->task_index->{$continue});
+
 	}else{
 	    $L->logdie("Cannot continue, task '", $continue, "' unknown");
 	}
@@ -279,10 +276,11 @@ sub load_trace{
 	if(exists $self->task_index->{$self->trace_task_done}){
 	    if($self->task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
 		$L->logdie("Complete ",$self->name," run present, disable --continue to restart");
-	    }else{
-		$L->info("Unfinished ",$self->name," run present, continuing after task '", $self->trace_task_done, "'");
-		$self->task($self->task_index->{$self->trace_task_done} + 1);
 	    }
+
+	    $L->info("Unfinished ",$self->name," run present, continuing after task '", $self->trace_task_done, "'");
+	    $self->task($self->task_index->{$self->trace_task_done} + 1);
+
 	}else{
 	    $L->logdie("Cannot continue, previous ",$self->name," run ended with task '", $self->trace_task_done, "', which is not part of the current task sequence");
 	}
@@ -404,6 +402,18 @@ sub task_iter{
 	$self->{_task_iter} = $task_iter;
     }
     return $self->{_task_iter};
+}
+
+=head2 force
+
+=cut
+
+sub force{
+    my ($self, $force, $force) = @_;
+    if(defined($force) || $force){
+	$self->{force} = $force;
+    }
+    return $self->{force};
 }
 
 =head2 trace_file
