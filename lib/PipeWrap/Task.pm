@@ -61,10 +61,17 @@ sub run{
     my $re;
 
     my $parser = $self->parser || "parse_raw";
-    $re = ref $parser eq 'CODE' ? $parser->($cmdh) : $self->$parser($cmdh);
-
+    if(ref $parser eq 'CODE'){
+	$L->debug("Using custom parser routine, returned");
+	$re = &{$parser}($cmdh);
+	$L->debug(Dumper($re));
+    }else{
+	$L->debug("Using predefined parser");
+	$re = $self->$parser($cmdh);
+    }
+    
     close $cmdh;
-    $L->logcroak("$tid exited:$? $@\n", $re) if ($? || $@);
+    $L->logcroak($self->id." exited:$? $@\n", $re) if ($? || $@);
     
     $L->debug("$self returned:\n",  ref $re ? Dumper($re) : $re);
 
