@@ -255,8 +255,8 @@ sub load_trace{
 	: $self->init_trace;
 
     if(! defined($self->trace_task_done) || ! length $self->trace_task_done){
-	$self->task(0);
-	$L->info("Running ",$self->name," from the beginning, no previous runs detected.");
+	$self->task_iter(0);
+	$L->info("Running ",$self->id," from the beginning, no previous runs detected.");
 	return $self->trace;
     }
 
@@ -267,7 +267,7 @@ sub load_trace{
 	    }
 	    
 	    $L->info("Continuing after task '", $continue, "'");
-	    $self->task($self->task_index->{$continue});
+	    $self->task_iter($self->task_index->{$continue});
 
 	}else{
 	    $L->logdie("Cannot continue, task '", $continue, "' unknown");
@@ -275,14 +275,14 @@ sub load_trace{
     }else{ # continue from last completed task
 	if(exists $self->task_index->{$self->trace_task_done}){
 	    if($self->task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
-		$L->logdie("Complete ",$self->name," run present, disable --continue to restart");
+		$L->logdie("Complete ",$self->id," run present, disable --continue to restart");
 	    }
 
-	    $L->info("Unfinished ",$self->name," run present, continuing after task '", $self->trace_task_done, "'");
-	    $self->task($self->task_index->{$self->trace_task_done} + 1);
+	    $L->info("Unfinished ",$self->id," run present, continuing after task '", $self->trace_task_done, "'");
+	    $self->task_iter($self->task_index->{$self->trace_task_done} + 1);
 
 	}else{
-	    $L->logdie("Cannot continue, previous ",$self->name," run ended with task '", $self->trace_task_done, "', which is not part of the current task sequence");
+	    $L->logdie("Cannot continue, previous ",$self->id," run ended with task '", $self->trace_task_done, "', which is not part of the current task sequence");
 	}
     }
     return $self->trace;
