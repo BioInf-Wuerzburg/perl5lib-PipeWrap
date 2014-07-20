@@ -262,7 +262,7 @@ sub load_trace{
 
     if(defined($continue) && length $continue){ # continue from specific task
 	if(exists $self->task_index->{$continue}){
- 	    if($self->task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->task_index->{$continue-1}}){
+ 	    if($self->task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->task_index->{$continue}-1}){
 		$L->logdie("You want to continue from '$continue', however the previous task ".$self->task_index->{$continue-1}." never finished. Use force to overrule");
 	    }
 	    
