@@ -262,7 +262,7 @@ sub load_trace{
 
     if(defined($continue) && length $continue){ # continue from specific task
 	if(exists $self->task_index->{$continue}){
- 	    if($self->task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->task_index->{$continue}-1}){
+ 	    if($self->task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->previous_task($continue)}){
 		$L->logdie("You want to continue from '$continue', however the previous task ".$self->task_index->{$continue-1}." never finished. Use force to overrule");
 	    }
 	    
@@ -316,6 +316,21 @@ sub current_task{
     return $self->tasks->[$self->task_iter];
 }
 
+=head2 previous_task
+
+Get the previous task of a) the current task, if called without args,
+or the provided task id.
+
+=cut
+
+sub previous_task{
+    my ($self, $task) = @_;
+    $task = $self->current_task unless $task;
+    my $tid = ref $task ? $task->id : $task;
+    my $tdx = $self->task_index->{$tid}-1; # no task befor first task
+    
+    return $tdx < 0 ? undef : $self->tasks->[$tdx];
+}
 
 ##----------------------------------------------------------------------------##
 #Accessors

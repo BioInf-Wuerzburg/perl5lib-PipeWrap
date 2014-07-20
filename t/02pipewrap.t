@@ -154,6 +154,9 @@ subtest 'run' => sub{
 
     # third
     is($o->current_task->id, $ts->[2]{id}, 'current_task get');
+    is($o->previous_task->id, $ts->[1]{id}, 'previous_task get');
+    is($o->previous_task($ts->[1]{id})->id, $ts->[0]{id}, 'previous_task(tid) get');
+
     is($o->run(), $ts->[2]{id}, 'run third task: %-idx/idx%, %{ids}%');
 
     my $re = "prev	bin\nthis	rel\nother	foo\n";
@@ -180,6 +183,8 @@ subtest 'run' => sub{
 
     # missing tests for skip, continue, force
 
+    # continue
+    my $o2 = new_ok($Class, [tasks => $ts, opt => $opt, continue => "rel"]);
 
 };
 
