@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/PipeWrap.t
+lib/PipeWrap.pm
