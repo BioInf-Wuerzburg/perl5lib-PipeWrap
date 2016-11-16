@@ -66,7 +66,139 @@ $new->resolve_task($task);
 
 resolves given task and returns corresponding cmd
 
-=head1 SEE ALSO                                                                                      
+=cut
+
+=head2 wildcard
+
+skipped because of ????
+
+=cut
+
+=head2 init_trace
+
+$new->init_trace();
+
+Initialize a persistent trace, implemented with 'Storable'. 
+
+=cut
+
+=head2 init_trace
+
+tba
+
+=cut
+
+=head2 load_trace
+
+tba
+
+=cut
+
+=head2 update_trace
+
+tba
+
+=cut
+
+=head2 current_task
+
+tba
+
+=cut
+
+#---------<<<<<<<<<#####################>>>>>>>>>---------#
+#---------<<<<<<<<<###---accessors---###>>>>>>>>>---------#
+#---------<<<<<<<<<#####################>>>>>>>>>---------#                                          
+=head2 id
+
+tba
+
+=cut
+
+=head2 tasks
+
+tba
+
+=cut
+
+=head2 opt
+
+tba
+
+=cut
+
+=head2 task_index
+
+tba
+
+=cut
+
+=head2 skip
+
+tba
+
+=cut
+
+=head2 continue
+
+tba
+
+=cut
+
+=head2 task_iter
+
+tba
+
+=cut
+
+=head2 force
+
+tba
+
+=cut
+
+=head2 trace_file
+
+tba
+
+=cut
+
+=head2 trace
+
+tba
+
+=cut
+
+=head2 trace_task_results
+
+tba
+
+=cut
+
+=head2 trace_update_time
+
+tba
+
+=cut
+
+=head2 trace_init_time
+
+tba
+
+=cut
+
+=head2 trace_task_done
+
+tba
+
+=cut
+
+#---------<<<<<<<<<#####################>>>>>>>>>---------#
+#---------<<<<<<<<<###---COPYRIGHT---###>>>>>>>>>---------#
+#---------<<<<<<<<<###------AND------###>>>>>>>>>---------#                                         #---------<<<<<<<<<###----LICENSE----###>>>>>>>>>---------#                                         
+#---------<<<<<<<<<#####################>>>>>>>>>---------#                                         
+
+=head1 SEE ALSO                                                                 
 Mention other use  
 
 =head1 AUTHOR
