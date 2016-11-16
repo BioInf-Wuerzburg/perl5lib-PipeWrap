@@ -82,27 +82,21 @@ Initialize a persistent trace, implemented with 'Storable'.
 
 =cut
 
-=head2 init_trace
-
-tba
-
-=cut
-
 =head2 load_trace
 
-tba
+load_trace() loads persistent trace
 
 =cut
 
 =head2 update_trace
 
-tba
+update_trace() stores latest pipeline status to trace
 
 =cut
 
 =head2 current_task
 
-tba
+current_task() gets the current task and determines current pipeline status with $self->task_iter
 
 =cut
 
@@ -111,85 +105,114 @@ tba
 #---------<<<<<<<<<#####################>>>>>>>>>---------#                                          
 =head2 id
 
-tba
+$new->id() get
+$new->id($id) set
+set and get id in the object
 
 =cut
 
 =head2 tasks
 
-tba
+$new->tasks() get
+$new->tasks($tasks) set
+set and get tasks in the object
 
 =cut
 
 =head2 opt
 
-tba
+$new->opt() get
+$new->opt($opt) set
+set and get options in the object
 
 =cut
 
 =head2 task_index
 
-tba
+$new->task_index() get
+$new->task_index($task_index) set
+set and get task indicies
 
 =cut
 
 =head2 skip
 
-tba
+$new->skip() get
+$new->skip($skip) set
+set and get tasks that shall not be run
 
 =cut
 
 =head2 continue
 
-tba
+$new->continue() get
+$new->continue($continue) set
+set and get task after that shall be continued
 
 =cut
 
 =head2 task_iter
 
-tba
+$new->task_iter() get
+$new->task_iter($task_iter) set
+set and get iteration of the current task
 
 =cut
 
 =head2 force
 
-tba
+$new->force() get
+$new->force($force) set
+set and get if a task shall be forced 
 
 =cut
 
 =head2 trace_file
 
-tba
+$new->trace_file() get
+$new->trace_file($trace_file) set
+set and get file trace 
 
 =cut
 
 =head2 trace
 
-tba
+$new->trace() get
+$new->trace($trace) set
+set and get _trace
+_trace contains task_results, init_time, update_time, task_done
 
 =cut
 
 =head2 trace_task_results
 
-tba
+$new->trace_task_results() get
+$new->trace_task_results($task_results) set
+set and get task_results
 
 =cut
 
 =head2 trace_update_time
 
-tba
+$new->trace_update_time() get
+$new->trace_update_time($trace_update_time) set
+set and get update of time trace
 
 =cut
 
 =head2 trace_init_time
 
-tba
+$new->trace_init_time() get
+$new->trace_init_time($trace_init_time) get
+set and get initial time trace
 
 =cut
 
 =head2 trace_task_done
 
-tba
+$new->trace_task_done() get
+$new->trace_task_done($trace_task_done) set
+set and get trace of completed tasks
 
 =cut
 
