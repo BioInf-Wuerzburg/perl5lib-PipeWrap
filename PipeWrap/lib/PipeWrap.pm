@@ -56,13 +56,18 @@ index_tasks() indicates all given tasks
 
 $new->run();
 
-run() 
+run() runs current task give by object, increases tasknumber, saves current task number, can skip tasks, returns current task
+
+=cut
+
+=head2 resolve_task
+
+$new->resolve_task($task);
+
+resolves given task and returns corresponding cmd
 
 =head1 SEE ALSO                                                                                      
-Mention other useful documentation such as the documentation of                                      
-related modules or operating system documentation (such as man pages                                 
-documentation such as RFCs or                                                                       
-standards.  
+Mention other use  
 
 =head1 AUTHOR
 
