@@ -103,6 +103,8 @@ current_task() gets the current task and determines current pipeline status with
 #---------<<<<<<<<<#####################>>>>>>>>>---------#
 #---------<<<<<<<<<###---accessors---###>>>>>>>>>---------#
 #---------<<<<<<<<<#####################>>>>>>>>>---------#                                          
+=head1 ACCESSORS
+=cut
 =head2 id
 
 $new->id() get
@@ -226,8 +228,8 @@ Mention other use
 
 =head1 AUTHOR
 
-Thomas Hackl, E<lt>mail<gt>
-Simon Pfaff, E<lt>simon.pfaff@stud-mail.uni-wuerzburg.de<gt>
+Thomas Hackl, E<lt>mail<gt>\n
+Simon Pfaff, E<lt>simon.pfaff@stud-mail.uni-wuerzburg.de<gt>\n
 Aaron Sigmund, E<lt>aaron.sigmund@stud-mail.uni-wuerzburg.de<gt>
 
 =head1 COPYRIGHT AND LICENSE
