@@ -1,18 +1,20 @@
 package PipeWrap;
 
 use 5.010001;
-use strict;
-use warnings;
+use Moose;
 
-our @ISA = qw();
+use FindBin qw($RealBin $Script);
+use File::Basename;
+use Storable;
+use Data::Dumper;
+
+#our @ISA = qw();
 
 our $VERSION = '0.1';
 
 
 # Preloaded methods go here.
 
-1;
-__END__
 # Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
@@ -35,6 +37,23 @@ PipeWrap::new();
 new() creates PipeWrap object with given options from config file
 
 =cut
+
+has 'id' => (is => 'rw', isa => 'Any', default => basename($Script, qw(.pl .PL)));
+has 'tasks' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'continue' => (is => 'rw', isa => 'Any', default => undef);
+has 'skip' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'trace_file' => (is => 'rw', isa => 'Any', default => undef);
+has 'opt' => (is => 'rw', isa => 'HashRef', default => sub { {} });
+has 'force' => (is => 'rw', isa => 'Any', default => undef);
+
+has '_task_iter' => (is => 'rw', isa => 'Int', default => 0);
+has '_task_index' => (is => 'rw', isa => 'HashRef', default => sub { {} });
+has '_trace' => (is => 'rw', isa => 'HashRef', default => sub { {task_results => {},
+								 init_time => undef,
+								 update_time => undef,
+								 task_done => undef}
+		 });
+							 
 
 =head2 bless_tasks
 
@@ -217,6 +236,8 @@ $new->trace_task_done($trace_task_done) set
 set and get trace of completed tasks
 
 =cut
+1;
+__END__
 
 #---------<<<<<<<<<#####################>>>>>>>>>---------#
 #---------<<<<<<<<<###---COPYRIGHT---###>>>>>>>>>---------#
