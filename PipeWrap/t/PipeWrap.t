@@ -23,6 +23,8 @@ my $empty_hash = {}; #hash default = empty
 
 my $new = new_ok($class);
 
+#---------TESTS4new()---------#
+
 is ($new->{id}, $basename, "Test if id matches basename");
 is (@{$new->{tasks}}, @{$empty}, "Test if tasks is empty array");
 is ($new->{continue}, undef, "Test if continue is initialized");
@@ -37,6 +39,31 @@ is (%{$new->{_trace}->{task_results}}, %{$empty_hash}, "" );
 is ($new->{_trace}->{init_time}, undef, "God initialized time");
 is ($new->{_trace}->{update_time}, undef, "God decided that time goes by");
 is ($new->{_trace}->{task_done}, undef, "Achievement unlocked! Task done is initialized.");
+
+#------------TESTS4new(accessors)---------#
+
+for my $accessor (qw(continue trace_file force id)) {
+can_ok($class, $accessor);
+is ($new->$accessor, $new->{$accessor}, "Test get ".$accessor);
+is ($new->$accessor("Kitten"), "Kitten", "Test set ".$accessor);
+is ($new->$accessor(undef), undef, "Test undef ".$accessor);
+}
+
+my $kittens_alive = {Kittens => "alive"};
+
+for my $damn_hashes (qw(_task_index _trace opt)) {
+can_ok($class, $damn_hashes);
+is ($new->$damn_hashes, $new->{$damn_hashes}, "Test get ".$damn_hashes);
+is ($new->$damn_hashes($kittens_alive), $kittens_alive, "Test set ".$damn_hashes);
+}
+
+my $kittens_stillalive = ["Hello", "Kitties"];
+
+for my $damn_arrays (qw(skip tasks)) {
+can_ok($class, $damn_arrays);
+is ($new->$damn_arrays, $new->{$damn_arrays}, "Test get ".$damn_arrays);
+is ($new->$damn_arrays($kittens_stillalive), $kittens_stillalive, "Test set ".$damn_arrays);
+}
 
 
 done_testing();
