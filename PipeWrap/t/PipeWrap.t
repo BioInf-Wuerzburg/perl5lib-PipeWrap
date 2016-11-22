@@ -51,7 +51,7 @@ is ($new->$accessor(undef), undef, "Test undef ".$accessor);
 
 my $kittens_alive = {Kittens => "alive"};
 
-for my $damn_hashes (qw(_task_index _trace opt)) {
+for my $damn_hashes (qw(_task_index opt _trace)) {
 can_ok($class, $damn_hashes);
 is ($new->$damn_hashes, $new->{$damn_hashes}, "Test get ".$damn_hashes);
 is ($new->$damn_hashes($kittens_alive), $kittens_alive, "Test set ".$damn_hashes);
@@ -63,6 +63,13 @@ for my $damn_arrays (qw(skip tasks)) {
 can_ok($class, $damn_arrays);
 is ($new->$damn_arrays, $new->{$damn_arrays}, "Test get ".$damn_arrays);
 is ($new->$damn_arrays($kittens_stillalive), $kittens_stillalive, "Test set ".$damn_arrays);
+}
+
+for my $trace (qw(trace_task_results trace_init_time trace_update_time trace_task_done)) {
+can_ok($class, $trace);
+(my $tracewotrace = $trace) =~ s/trace_//;
+is ($new->$trace, $new->_trace->{$tracewotrace}, "Test get ".$trace);
+is ($new->$trace("KA"), "KA", "test KA!");
 }
 
 
