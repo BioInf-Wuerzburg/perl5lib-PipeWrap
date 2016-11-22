@@ -8,6 +8,10 @@ perl:
   - "5.22"
 sudo:
   false
+addons:
+  apt:
+    packages:
+    - liblog-log4perl-perl
 install:
     - perl -v
 script: 
