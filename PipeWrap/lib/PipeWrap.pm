@@ -48,7 +48,7 @@ has 'force' => (is => 'rw', isa => 'Any', default => undef);
 
 has '_task_iter' => (is => 'rw', isa => 'Int', default => 0);
 has '_task_index' => (is => 'rw', isa => 'HashRef', default => sub { {} });
-has '_trace' => (is => 'rw', isa => 'HashRef', default => sub { {task_results => {},
+has '_trace' => (is => 'rw', isa => 'Any', default => sub { {task_results => {},
 								 init_time => undef,
 								 update_time => undef,
 								 task_done => undef}
@@ -213,6 +213,15 @@ set and get task_results
 
 =cut
 
+sub trace_task_results{
+    my ($self, $trace_task_results, $force) = @_;
+    if (defined($trace_task_results || $force)) {
+	$self->_trace->{task_results} = $trace_task_results;
+    }
+    return $self->_trace->{task_results};
+
+}
+
 =head2 trace_update_time
 
 $new->trace_update_time() get
@@ -220,6 +229,15 @@ $new->trace_update_time($trace_update_time) set
 set and get update of time trace
 
 =cut
+
+sub trace_update_time{
+    my ($self, $trace_update_time, $force) = @_;
+    if (defined($trace_update_time || $force)) {
+        $self->_trace->{update_time} = $trace_update_time;
+    }
+    return $self->_trace->{update_time};
+
+}
 
 =head2 trace_init_time
 
@@ -229,6 +247,15 @@ set and get initial time trace
 
 =cut
 
+sub trace_init_time{
+    my ($self, $trace_init_time, $force) = @_;
+    if (defined($trace_init_time || $force)) {
+        $self->_trace->{init_time} = $trace_init_time;
+    }
+    return $self->_trace->{init_time};
+
+}
+
 =head2 trace_task_done
 
 $new->trace_task_done() get
@@ -236,6 +263,16 @@ $new->trace_task_done($trace_task_done) set
 set and get trace of completed tasks
 
 =cut
+
+sub trace_task_done{
+    my ($self, $trace_task_done, $force) = @_;
+    if (defined($trace_task_done || $force)) {
+        $self->_trace->{task_done} = $trace_task_done;
+    }
+    return $self->_trace->{task_done};
+
+}
+
 1;
 __END__
 
