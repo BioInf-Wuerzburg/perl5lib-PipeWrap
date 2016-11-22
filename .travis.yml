@@ -8,11 +8,8 @@ perl:
   - "5.22"
 sudo:
   false
-addons:
-  apt:
-    packages:
-    - liblog-log4perl-perl
 install:
     - perl -v
+    - cpanm -L cpanmlibs Log::Log4perl
 script: 
-    - perl -Ilib t/*.t
+    - perl -Ilib -Icpanmlibs/lib/perl5 t/*.t
