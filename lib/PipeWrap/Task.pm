@@ -1,13 +1,15 @@
-package PipeWrap::Task;
+package Task;
 
 use 5.010001;
+
 use Moose;
+extends 'PipeWrap';
 
 use Log::Log4perl qw(:easy :no_extra_logdie_message);
 use overload '""' => \&id;
 use Data::Dumper;
 
-our @ISA = qw();
+#our @ISA = qw();
 
 #---------globals---------#
 
@@ -42,6 +44,10 @@ Checkpoint system that supervises a given order of tasks given by a config file.
 new() creates PipeWrap task object
 
 =cut
+
+has 'id' => (is =>'rw', isa => 'Any', default => '');
+has 'cmd' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'parser' => (is => 'rw', isa => 'Any', default => undef);
 
 =head2 run
 
