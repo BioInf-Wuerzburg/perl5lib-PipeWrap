@@ -1,0 +1,44 @@
+# Before 'make install' is performed this script should be runnable with
+# 'make test'. After 'make install' it should work as 'perl PipeWrap.t'
+
+#########################
+
+# change 'tests => 1' to 'tests => last_test_to_print';
+
+use strict;
+use warnings;
+
+use Test::More;
+use Test::Class::Moose;
+use PipeWrap;
+BEGIN { use_ok('PipeWrap::Task') };
+
+my $basename = "foo";
+my $class = "Task";
+my $test_value = 0; #just a testvalue
+
+my $empty = []; #array default = empty
+my $empty_hash = {}; #hash default = empty
+
+my $hash = {id => 'foo', cmd => [qw(perl -e 'print "Task\tperl\n"')], parser => undef};
+
+my $new = new_ok($class, [%$hash]);
+
+###---------TESTS4PipeWrap::Task---------#
+#---------TESTS4new()---------#
+
+is ($new->{id}, $basename, "Test if id matches basename");
+is ($new->{cmd}, $hash->{cmd}, "Test cmd");
+is ($new->{parser}, undef, "Test parser");
+
+for my $accessor (qw(id parser)) {
+can_ok($class, $accessor);
+is ($new->$accessor, $hash->{$accessor}, "Test get ".$accessor);
+is ($new->$accessor("Kittens"), "Kittens", "Test set ".$accessor);
+}
+my $alive = [qw(perl -e 'print "no kittens died"')];
+can_ok($class, "cmd");
+is ($new->cmd, $hash->{cmd}, "Test get cmd");
+is ($new->cmd($alive), $alive, "Test set cmd");
+
+done_testing();
