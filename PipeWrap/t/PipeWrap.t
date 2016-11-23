@@ -12,7 +12,8 @@ use Test::More;
 use Test::Class::Moose;
 
 BEGIN { use_ok('PipeWrap') };
-use_ok('Moose');
+#use_ok('Moose');
+use_ok('PipeWrap::Task');
 
 my $basename = "PipeWrap.t";
 my $class = "PipeWrap";
@@ -22,7 +23,7 @@ my $empty = []; #array default = empty
 my $empty_hash = {}; #hash default = empty
 
 my $new = new_ok($class);
-
+###---------TESTS4PipeWrap---------#
 #---------TESTS4new()---------#
 
 is ($new->{id}, $basename, "Test if id matches basename");
@@ -69,8 +70,17 @@ for my $trace (qw(trace_task_results trace_init_time trace_update_time trace_tas
 can_ok($class, $trace);
 (my $tracewotrace = $trace) =~ s/trace_//;
 is ($new->$trace, $new->_trace->{$tracewotrace}, "Test get ".$trace);
-is ($new->$trace("KA"), "KA", "test KA!");
+is ($new->$trace("KA"), "KA", "Test set ".$trace);
 }
+
+
+###---------Tests4PipeWrap::Task---------###
+
+my $class_task = "PipeWrap::Task";
+
+#my $new_task = new_ok($class_task);
+
+
 
 
 done_testing();

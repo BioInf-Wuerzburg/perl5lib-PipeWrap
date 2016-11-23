@@ -15,8 +15,6 @@ our $VERSION = '0.1';
 
 # Preloaded methods go here.
 
-# Below is stub documentation for your module. You'd better edit it!
-
 =head1 NAME
 
 PipeWrap - Checkpoint system for perl modules.
