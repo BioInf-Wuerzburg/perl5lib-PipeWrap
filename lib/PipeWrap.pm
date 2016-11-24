@@ -2,6 +2,7 @@ package PipeWrap;
 
 use 5.010001;
 use Moose;
+use PipeWrap::Task;
 
 use FindBin qw($RealBin $Script);
 use File::Basename;
@@ -60,6 +61,16 @@ $new->bless_tasks();
 bless_tasks() blesses tasks in PipeWrap object
 
 =cut
+
+sub bless_tasks{
+    my ($self) = @_;
+
+    return $self->tasks([
+	map{
+	        ref($_) eq 'Task' ? $_ : Task->new(%$_) 
+	}@{$self->tasks}
+			]);
+}
 
 =head2 index_tasks
 
