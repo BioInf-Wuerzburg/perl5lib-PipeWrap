@@ -143,6 +143,11 @@ current_task() gets the current task and determines current pipeline status with
 
 =cut
 
+sub current_task{
+    my ($self) = @_;
+    return $self->tasks->[$self->_task_iter];
+}
+
 #---------<<<<<<<<<#####################>>>>>>>>>---------#
 #---------<<<<<<<<<###---accessors---###>>>>>>>>>---------#
 #---------<<<<<<<<<#####################>>>>>>>>>---------#                                          
