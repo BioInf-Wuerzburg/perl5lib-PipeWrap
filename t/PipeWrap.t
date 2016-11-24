@@ -11,9 +11,9 @@ use warnings;
 use Test::More;
 use Test::Class::Moose;
 
+use PipeWrap::Task;
+
 BEGIN { use_ok('PipeWrap') };
-#use_ok('Moose');
-use_ok('PipeWrap::Task');
 
 my $basename = "PipeWrap.t";
 my $class = "PipeWrap";
@@ -73,12 +73,21 @@ is ($new->$trace, $new->_trace->{$tracewotrace}, "Test get ".$trace);
 is ($new->$trace("KA"), "KA", "Test set ".$trace);
 }
 
+#---------TESTS4bless_tasks()---------#
 
-###---------Tests4PipeWrap::Task---------###
+can_ok($class, "bless_tasks");
 
-my $class_task = "PipeWrap::Task";
+my $new2 = PipeWrap->new(tasks => [{1 => "Kittens"}]);
+is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject_else");
+$new2->bless_tasks();
+is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks_else");
 
-#my $new_task = new_ok($class_task);
+$new2 = PipeWrap->new(tasks => [{1 => "Kittens"}]);
+is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject2_if");
+$new2->{tasks}->[0] = Task->new({$new2->tasks() => ""});
+is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if");
+$new2->bless_tasks();
+is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if_already_blessed");
 
 
 
