@@ -1,9 +1,9 @@
-package Task;
+package PipeWrap::Task;
 
 use 5.010001;
 
 use Moose;
-extends 'PipeWrap';
+#extends 'PipeWrap';
 
 use Log::Log4perl qw(:easy :no_extra_logdie_message);
 use overload '""' => \&id;
