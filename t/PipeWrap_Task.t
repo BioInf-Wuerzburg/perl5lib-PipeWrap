@@ -43,10 +43,13 @@ can_ok($class, "cmd");
 is ($new->cmd, $hash->{cmd}, "Test get cmd");
 is ($new->cmd($alive), $alive, "Test set cmd");
 
+#---------TESTS4run()---------#
+
 my $new2 = Task->new($hash);
 can_ok($class, "run");
 is ($new2->run(), "Task\tperl\n", "Test run");
 
+#---------TESTS4parse_raw()---------#
 
 can_ok($class, "parse_raw");
 
@@ -55,6 +58,8 @@ open (my $fh, "<", $file) or die "Can't open ".$file.$!;
 
 
 is ($new->parse_raw($fh), "Some kittens found shelter in this file. They didn't die!\n", "Test parse_raw");
+
+#---------TESTS4parse_csv()---------#
 
 can_ok($class, "parse_csv");
 $file = "$RealBin/Task_parse_csv_file.txt";
