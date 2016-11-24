@@ -16,7 +16,7 @@ use FindBin qw($RealBin);
 
 
 my $basename = "foo";
-my $class = "Task";
+my $class = "PipeWrap::Task";
 my $test_value = 0; #just a testvalue
 
 my $empty = []; #array default = empty
@@ -45,7 +45,7 @@ is ($new->cmd($alive), $alive, "Test set cmd");
 
 #---------TESTS4run()---------#
 
-my $new2 = Task->new($hash);
+my $new2 = PipeWrap::Task->new($hash);
 can_ok($class, "run");
 is ($new2->run(), "Task\tperl\n", "Test run");
 
