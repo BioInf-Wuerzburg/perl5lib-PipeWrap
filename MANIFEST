@@ -3,4 +3,8 @@ Makefile.PL
 MANIFEST
 README
 t/PipeWrap.t
+t/Task_parse_raw_file.txt
+t/Task_parse_csv_file.txt
+t/PipeWrap_Task.t
 lib/PipeWrap.pm
+lib/PipeWrap/Task.pm
