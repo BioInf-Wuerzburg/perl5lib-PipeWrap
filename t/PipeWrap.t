@@ -75,21 +75,25 @@ is ($new->$trace, $new->_trace->{$tracewotrace}, "Test get ".$trace);
 is ($new->$trace("KA"), "KA", "Test set ".$trace);
 }
 
-#---------TESTS4bless_tasks()---------#
+#---------TESTS4_set_tasks()---------#
 
-can_ok($class, "bless_tasks");
+can_ok ($class, "_set_tasks");
 
-my $new2 = PipeWrap->new(tasks => [{1 => "Kittens"}]);
-is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject_else");
-$new2->bless_tasks();
-is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks_else");
+my @list = ({1 => "Kittens"}, {2 => "AsianKitten"});
 
-$new2 = PipeWrap->new(tasks => [{1 => "Kittens"}]);
-is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject2_if");
-$new2->{tasks}->[0] = Task->new({$new2->tasks() => ""});
-is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if");
-$new2->bless_tasks();
-is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if_already_blessed");
+my $new2 = PipeWrap->new();
+#is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject_else");
+$new2->_set_tasks(@list);
+isa_ok ($new2->{tasks}->[0], "PipeWrap::Task", "Test _set_tasks1");
+isa_ok ($new2->{tasks}->[1], "PipeWrap::Task", "Test _set_tasks2");
+
+
+#$new2 = PipeWrap->new(tasks => [{1 => "Kittens"}]);
+#is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject2_if");
+#$new2->{tasks}->[0] = Task->new({$new2->tasks() => ""});
+#is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if");
+#$new2->bless_tasks();
+#is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if_already_blessed");
 
 #---------TESTS4index_tasks()---------#
 
@@ -113,10 +117,30 @@ dies_ok { $new->index_tasks() } 'expecting to die';
 #---------TESTS4current_task()---------#
 
 can_ok ($class, "current_task");
-$new = PipeWrap->new(tasks => [$var1, $var2, $var3]);
-is ($new->current_task(), $var1, "Test if current task is 0");
+
+my $tmp_file = "Test.trace";
+
+$new = PipeWrap->new(tasks => [$var1, $var2, $var3], trace_file => $tmp_file);
+is_deeply ($new->current_task(), $var1, "Test if current task is 0");
+
+#---------TESTS4init_trace()---------#
+
+can_ok ($class, "init_trace");
+
+is ($new->init_trace(), $new->{_trace}, "Test init_trace");
+
+is (time(), $new->{_trace}->{init_time}, "is time the true time");
+#sleep(2);
+is (time(), $new->{_trace}->{update_time}, "is time the true time2");
+
+#---------TESTS4update_trace()---------#
+
+can_ok ($class, "update_trace");
+#is ($new->update_trace(), $new->{_trace}, "Test update_trace");
 
 
+
+unlink $tmp_file;
 
 
 done_testing();
