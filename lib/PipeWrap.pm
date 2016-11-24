@@ -57,21 +57,19 @@ has '_trace' => (is => 'rw', isa => 'Any', default => sub { {task_results => {},
 
 =head2 bless_tasks
 
-$new->bless_tasks();
 
-bless_tasks() blesses tasks in PipeWrap object
+=head2 _set_tasks
+
 
 =cut
 
-sub bless_tasks{
-    my ($self) = @_;
-
-    return $self->tasks([
-	map{
-	        ref($_) eq 'Task' ? $_ : Task->new(%$_) 
-	}@{$self->tasks}
-			]);
+sub _set_tasks {
+    my $self = shift;
+    my @tasks = @_;
+    $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @tasks ];
+    return $self->tasks;
 }
+
 
 =head2 index_tasks
 
@@ -125,6 +123,17 @@ Initialize a persistent trace, implemented with 'Storable'.
 
 =cut
 
+sub init_trace{
+    my ($self) = @_;
+
+    $self->trace_init_time(time());
+    $self->trace_update_time(time());
+
+    store($self->_trace, $self->trace_file)
+	|| $L->logdie("Cannot create trace file: ".$self->trace_file);
+    return $self->_trace;
+}
+
 =head2 load_trace
 
 load_trace() loads persistent trace
@@ -136,6 +145,16 @@ load_trace() loads persistent trace
 update_trace() stores latest pipeline status to trace
 
 =cut
+
+sub update_trace{
+    my ($self) = @_;
+
+    $self->trace_update_time(time());
+    $self->trace_task_done($self->current_task->id);
+    store($self->trace, $self->trace_file)
+	|| $L->logdie("Cannot store updated trace file: ".$self->trace_file);
+    return $self->trace;
+}
 
 =head2 current_task
 
