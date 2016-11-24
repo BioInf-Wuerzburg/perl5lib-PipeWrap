@@ -10,8 +10,10 @@ use warnings;
 
 use Test::More;
 use Test::Class::Moose;
+use Test::Exception;
 
 use PipeWrap::Task;
+
 
 BEGIN { use_ok('PipeWrap') };
 
@@ -36,7 +38,7 @@ is ($new->{force}, undef, "Test if force is initialized");
 
 is ($new->{_task_iter}, $test_value, "Test if _task_iter is 0");
 is (%{$new->{_task_index}}, %{$empty_hash}, "Test if _task_index is empty hash");
-is (%{$new->{_trace}->{task_results}}, %{$empty_hash}, "" );
+is (%{$new->{_trace}->{task_results}}, %{$empty_hash}, "Test if %task_results is empty" );
 is ($new->{_trace}->{init_time}, undef, "God initialized time");
 is ($new->{_trace}->{update_time}, undef, "God decided that time goes by");
 is ($new->{_trace}->{task_done}, undef, "Achievement unlocked! Task done is initialized.");
@@ -88,6 +90,26 @@ $new2->{tasks}->[0] = Task->new({$new2->tasks() => ""});
 is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if");
 $new2->bless_tasks();
 is (ref($new2->{tasks}->[0]), "Task", "Test bless_tasks2_if_already_blessed");
+
+#---------TESTS4index_tasks()---------#
+
+can_ok($class, "index_tasks");
+
+my $var1 = {0 => "Kittens"};
+my $var2 = {0 => "BlackKitten"};
+my $var3 = {1 => "AsianKitten"};
+
+$new = PipeWrap->new(tasks => [$var1, $var2, $var3]);
+$new->index_tasks();
+is ($new->{_task_index}->{$var1}, 0, "Test if _task_index = 0");
+is ($new->{_task_index}->{$var2}, 1, "Test if _task_index increases to 1 for the 2nd task");
+is ($new->{_task_index}->{$var3}, 2, "Test if _task_index increases to 2 for the 3rd task");
+
+$new = PipeWrap->new(tasks => [$var1, $var1, $var3]);
+#$new->index_tasks(); #Frank fragen: Wie testet man erfolgreich "die"?
+#we tried expect to die, does not work with logdie but without:
+dies_ok { $new->index_tasks() } 'expecting to die';
+
 
 
 
