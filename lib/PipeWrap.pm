@@ -8,12 +8,13 @@ use FindBin qw($RealBin $Script);
 use File::Basename;
 use Storable;
 use Data::Dumper;
+use Log::Log4perl qw(:easy :no_extra_logdie_message);
 
 #our @ISA = qw();
 
 our $VERSION = '0.1';
 
-
+my $L = Log::Log4perl::get_logger();
 # Preloaded methods go here.
 
 =head1 NAME
@@ -79,6 +80,20 @@ $new->index_tasks();
 index_tasks() indicates all given tasks
 
 =cut
+
+sub index_tasks{
+    my ($self) = @_;
+    my $i=0;
+    my %task_index;
+    foreach my $task (@{$self->tasks}){
+	#$L->logdie("Non-unique task id: $task") 
+	die if exists $task_index{"$task"};
+	$task_index{"$task"} = $i;
+	$i++;
+    }
+    
+    $self->{_task_index} = \%task_index;
+}
 
 =head2 run
 
