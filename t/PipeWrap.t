@@ -110,6 +110,11 @@ $new = PipeWrap->new(tasks => [$var1, $var1, $var3]);
 #we tried expect to die, does not work with logdie but without:
 dies_ok { $new->index_tasks() } 'expecting to die';
 
+#---------TESTS4current_task()---------#
+
+can_ok ($class, "current_task");
+$new = PipeWrap->new(tasks => [$var1, $var2, $var3]);
+is ($new->current_task(), $var1, "Test if current task is 0");
 
 
 
