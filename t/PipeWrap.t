@@ -54,22 +54,22 @@ my $kittens_alive = {Kittens => "alive"};
 
 for my $damn_hashes (qw(_task_index opt _trace)) {
 can_ok($class, $damn_hashes);
-is ($new->$damn_hashes, $new->{$damn_hashes}, "Test get ".$damn_hashes);
-is ($new->$damn_hashes($kittens_alive), $kittens_alive, "Test set ".$damn_hashes);
+is_deeply ($new->$damn_hashes, $new->{$damn_hashes}, "Test get ".$damn_hashes);
+is_deeply ($new->$damn_hashes($kittens_alive), $kittens_alive, "Test set ".$damn_hashes);
 }
 
 my $kittens_stillalive = ["Hello", "Kitties"];
 
 for my $damn_arrays (qw(skip tasks)) {
 can_ok($class, $damn_arrays);
-is ($new->$damn_arrays, $new->{$damn_arrays}, "Test get ".$damn_arrays);
-is ($new->$damn_arrays($kittens_stillalive), $kittens_stillalive, "Test set ".$damn_arrays);
+is_deeply ($new->$damn_arrays, $new->{$damn_arrays}, "Test get ".$damn_arrays);
+is_deeply ($new->$damn_arrays($kittens_stillalive), $kittens_stillalive, "Test set ".$damn_arrays);
 }
 
 for my $trace (qw(trace_task_results trace_init_time trace_update_time trace_task_done)) {
 can_ok($class, $trace);
 (my $tracewotrace = $trace) =~ s/trace_//;
-is ($new->$trace, $new->_trace->{$tracewotrace}, "Test get ".$trace);
+is_deeply ($new->$trace, $new->_trace->{$tracewotrace}, "Test get ".$trace);
 is ($new->$trace("KA"), "KA", "Test set ".$trace);
 }
 
@@ -80,7 +80,6 @@ can_ok ($class, "_set_tasks");
 my @list = ({1 => "Kittens"}, {2 => "AsianKitten"});
 
 my $new2 = PipeWrap->new();
-#is (ref($new2->{tasks}->[0]), "HASH", "Test bless_tasks_noobject_else");
 $new2->_set_tasks(@list);
 isa_ok ($new2->{tasks}->[0], "PipeWrap::Task", "Test _set_tasks1");
 isa_ok ($new2->{tasks}->[1], "PipeWrap::Task", "Test _set_tasks2");
