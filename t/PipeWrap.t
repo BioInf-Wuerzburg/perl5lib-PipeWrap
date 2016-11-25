@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 # Before 'make install' is performed this script should be runnable with
 # 'make test'. After 'make install' it should work as 'perl PipeWrap.t'
 
@@ -11,9 +12,6 @@ use warnings;
 use Test::More;
 use Test::Class::Moose;
 use Test::Exception;
-
-use PipeWrap::Task;
-
 
 BEGIN { use_ok('PipeWrap') };
 
