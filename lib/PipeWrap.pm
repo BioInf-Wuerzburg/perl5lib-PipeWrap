@@ -39,7 +39,7 @@ new() creates PipeWrap object with given options from config file
 =cut
 
 has 'id' => (is => 'rw', isa => 'Any', default => basename($Script, qw(.pl .PL)));
-has 'tasks' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'tasks' => (is => 'rw', isa => 'ArrayRef', builder => '_set_tasks');
 has 'continue' => (is => 'rw', isa => 'Any', default => undef);
 has 'skip' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
 has 'trace_file' => (is => 'rw', isa => 'Any', default => undef);
