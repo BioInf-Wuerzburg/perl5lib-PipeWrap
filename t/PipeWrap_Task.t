@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 # Before 'make install' is performed this script should be runnable with
 # 'make test'. After 'make install' it should work as 'perl PipeWrap.t'
 
@@ -10,10 +11,7 @@ use warnings;
 
 use Test::More;
 use Test::Class::Moose;
-use PipeWrap;
 BEGIN { use_ok('PipeWrap::Task') };
-use FindBin qw($RealBin);
-
 
 my $basename = "foo";
 my $class = "PipeWrap::Task";
@@ -48,23 +46,5 @@ is ($new->cmd($alive), $alive, "Test set cmd");
 my $new2 = PipeWrap::Task->new($hash);
 can_ok($class, "run");
 is ($new2->run(), "Task\tperl\n", "Test run");
-
-#---------TESTS4parse_raw()---------#
-
-can_ok($class, "parse_raw");
-
-my $file =  "$RealBin/Task_parse_raw_file.txt";
-open (my $fh, "<", $file) or die "Can't open ".$file.$!;
-
-
-is ($new->parse_raw($fh), "Some kittens found shelter in this file. They didn't die!\n", "Test parse_raw");
-
-#---------TESTS4parse_csv()---------#
-
-can_ok($class, "parse_csv");
-$file = "$RealBin/Task_parse_csv_file.txt";
-open ($fh, "<", $file) or die "Can't open ".$file.$!;
-my %csv_hash = ("Kittens" => "alive");
-is (%{$new->parse_csv($fh)}, %csv_hash, "Test parse_csv");
 
 done_testing();
