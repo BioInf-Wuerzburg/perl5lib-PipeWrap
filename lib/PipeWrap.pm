@@ -8,7 +8,7 @@ use FindBin qw($RealBin $Script);
 use File::Basename;
 use Storable;
 use Data::Dumper;
-use Log::Log4perl;# qw(:no_extra_logdie_message);
+use Log::Log4perl; #qw(:no_extra_logdie_message);
 
 #our @ISA = qw();
 
@@ -151,6 +151,10 @@ load_trace() loads persistent trace
 =cut
 
 sub load_trace {
+    my ($self, $continue) = @_;
+    -e $self->tzrace_file
+	? $self->trace(retrieve($self->trace_file))
+	: $self->init_trace;
 
 }
 
