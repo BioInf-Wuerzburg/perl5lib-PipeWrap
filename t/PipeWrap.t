@@ -114,7 +114,7 @@ is ($new->{_task_index}->{$var3->{id}}, 2, "Test if _task_index increases to 2 f
 SKIP: {
     #local $TODO = "Works somehow, you know^^";
 skip "Log4perl logdie problem", 1;
-dies_ok { $new = PipeWrap->new(tasks => [$var1, $var1, $var3]) } "Die!!!";
+throws_ok { PipeWrap->new(tasks => [$var1, $var1, $var3]) } qr/Non-unique task id/;
 
 };
 
@@ -138,14 +138,14 @@ is (time(), $new->{_trace}->{init_time}, "is time the true time");
 is (time(), $new->{_trace}->{update_time}, "is time the true time2");
 
 my $new_dies = PipeWrap->new(tasks => [$var1, $var2, $var3]);
-dies_ok { $new_dies->init_trace() } "init_trace died: no file";
+throws_ok { $new_dies->init_trace() } qr/can't create/, "init_trace died: no file";
 
 #---------TESTS4update_trace()---------#
 
 can_ok ($class, "update_trace");
 #sleep(2);
 is ($new->update_trace(), $new->{_trace}, "Test update_trace");
-dies_ok { $new_dies->update_trace() } "update_trace died: no file";
+throws_ok { $new_dies->update_trace() } qr/can't create/, "update_trace died: no file";
 
 unlink $tmp_file;
 
