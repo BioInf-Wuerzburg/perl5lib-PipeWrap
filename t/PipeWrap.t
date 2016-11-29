@@ -77,7 +77,7 @@ is ($new->$trace("KA"), "KA", "Test set ".$trace);
 
 can_ok ($class, "_set_tasks");
 
-my @list = ({1 => "Kittens"}, {2 => "AsianKitten"});
+my @list = ({id => "Kittens"}, {id => "AsianKitten"});
 
 my $new2 = PipeWrap->new();
 $new2->_set_tasks(\@list);
@@ -93,17 +93,17 @@ my $var2 = {id => "BlackKitten"};
 my $var3 = {id => "AsianKitten"};
 
 $new = PipeWrap->new(tasks => [$var1, $var2, $var3]);
-$new->index_tasks();
+#$new->index_tasks();
 is ($new->{_task_index}->{$var1->{id}}, 0, "Test if _task_index = 0");
 is ($new->{_task_index}->{$var2->{id}}, 1, "Test if _task_index increases to 1 for the 2nd task");
 is ($new->{_task_index}->{$var3->{id}}, 2, "Test if _task_index increases to 2 for the 3rd task");
 
-$new = PipeWrap->new(tasks => [$var1, $var1, $var3]);
 #$new->index_tasks(); #Frank fragen: Wie testet man erfolgreich "die"?
 #we tried expect to die, does not work with logdie but without:
  SKIP: {
 skip "Log4perl logdie problem", 1;
- dies_ok { $new->index_tasks() } 'expecting to die';
+ dies_ok { $new = PipeWrap->new(tasks => [$var1, $var1, $var3]) } "Die!!!";
+
 };
 
 #---------TESTS4current_task()---------#
