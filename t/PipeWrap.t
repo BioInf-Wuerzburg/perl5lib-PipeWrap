@@ -60,7 +60,7 @@ is_deeply ($new->$damn_hashes($kittens_alive), $kittens_alive, "Test set ".$damn
 
 my $kittens_stillalive = ["Hello", "Kitties"];
 
-for my $damn_arrays (qw(skip tasks)) {
+for my $damn_arrays (qw(skip)) {
 can_ok($class, $damn_arrays);
 is_deeply ($new->$damn_arrays, $new->{$damn_arrays}, "Test get ".$damn_arrays);
 is_deeply ($new->$damn_arrays($kittens_stillalive), $kittens_stillalive, "Test set ".$damn_arrays);
@@ -80,7 +80,7 @@ can_ok ($class, "_set_tasks");
 my @list = ({1 => "Kittens"}, {2 => "AsianKitten"});
 
 my $new2 = PipeWrap->new();
-$new2->_set_tasks(@list);
+$new2->_set_tasks(\@list);
 isa_ok ($new2->{tasks}->[0], "PipeWrap::Task", "Test _set_tasks1");
 isa_ok ($new2->{tasks}->[1], "PipeWrap::Task", "Test _set_tasks2");
 
@@ -88,22 +88,22 @@ isa_ok ($new2->{tasks}->[1], "PipeWrap::Task", "Test _set_tasks2");
 
 can_ok($class, "index_tasks");
 
-my $var1 = {0 => "Kittens"};
-my $var2 = {0 => "BlackKitten"};
-my $var3 = {1 => "AsianKitten"};
+my $var1 = {id => "Kittens"};
+my $var2 = {id => "BlackKitten"};
+my $var3 = {id => "AsianKitten"};
 
 $new = PipeWrap->new(tasks => [$var1, $var2, $var3]);
 $new->index_tasks();
-is ($new->{_task_index}->{$var1}, 0, "Test if _task_index = 0");
-is ($new->{_task_index}->{$var2}, 1, "Test if _task_index increases to 1 for the 2nd task");
-is ($new->{_task_index}->{$var3}, 2, "Test if _task_index increases to 2 for the 3rd task");
+is ($new->{_task_index}->{$var1->{id}}, 0, "Test if _task_index = 0");
+is ($new->{_task_index}->{$var2->{id}}, 1, "Test if _task_index increases to 1 for the 2nd task");
+is ($new->{_task_index}->{$var3->{id}}, 2, "Test if _task_index increases to 2 for the 3rd task");
 
 $new = PipeWrap->new(tasks => [$var1, $var1, $var3]);
 #$new->index_tasks(); #Frank fragen: Wie testet man erfolgreich "die"?
 #we tried expect to die, does not work with logdie but without:
  SKIP: {
 skip "Log4perl logdie problem", 1;
-dies_ok { $new->index_tasks() } 'expecting to die';
+ dies_ok { $new->index_tasks() } 'expecting to die';
 };
 
 #---------TESTS4current_task()---------#
@@ -113,7 +113,7 @@ can_ok ($class, "current_task");
 my $tmp_file = "Test.trace";
 
 $new = PipeWrap->new(tasks => [$var1, $var2, $var3], trace_file => $tmp_file);
-is_deeply ($new->current_task(), $var1, "Test if current task is 0");
+is_deeply ($new->current_task()->id, $var1->{id}, "Test if current task is 0");
 
 #---------TESTS4init_trace()---------#
 
