@@ -39,7 +39,7 @@ new() creates PipeWrap object with given options from config file
 =cut
 
 has 'id' => (is => 'rw', isa => 'Any', default => basename($Script, qw(.pl .PL)));
-has 'tasks' => (is => 'rw', isa => 'ArrayRef', builder => '_set_tasks');
+has 'tasks' => (is => 'rw', isa => 'ArrayRef', trigger => \&_set_tasks);
 has 'continue' => (is => 'rw', isa => 'Any', default => undef);
 has 'skip' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
 has 'trace_file' => (is => 'rw', isa => 'Any', default => undef);
@@ -65,8 +65,8 @@ has '_trace' => (is => 'rw', isa => 'Any', default => sub { {task_results => {},
 
 sub _set_tasks {
     my $self = shift;
-    my @tasks = @_;
-    $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @tasks ];
+    my ($new_tasks, $old_tasks) = @_;
+    $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @{$new_tasks} ];
     return $self->tasks;
 }
 
@@ -85,13 +85,13 @@ sub index_tasks{
     my %task_index;
     foreach my $task (@{$self->tasks}){
 	#$L->logdie("Non-unique task id: $task") 
-	if (exists $task_index{"$task"}) {
+	if (exists $task_index{$task->id()}) {
 
 	    $L->logdie("Non-unique task id: ".$task);
 	}
 	else {
 	
-	$task_index{"$task"} = $i;
+	$task_index{$task->id()} = $i;
 	$i++;
 	
     } 
