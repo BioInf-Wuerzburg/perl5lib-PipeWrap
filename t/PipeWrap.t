@@ -129,12 +129,10 @@ my $new_dies = PipeWrap->new(tasks => [$var1, $var2, $var3]);
 dies_ok { $new_dies->init_trace() } "init_trace died";
 
 #---------TESTS4update_trace()---------#
-#is (ref($new_dies->{tasks}->[1]), "PipeWrap::Task", "Test _set_tasks3");
 
 can_ok ($class, "update_trace");
-#is ($new->update_trace(), $new->{_trace}, "Test update_trace");
-
-
+#sleep(2);
+is ($new->update_trace(), $new->{_trace}, "Test update_trace");
 
 unlink $tmp_file;
 
