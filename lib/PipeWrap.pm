@@ -8,7 +8,7 @@ use FindBin qw($RealBin $Script);
 use File::Basename;
 use Storable;
 use Data::Dumper;
-use Log::Log4perl; #qw(:easy);
+use Log::Log4perl;# qw(:no_extra_logdie_message);
 
 #our @ISA = qw();
 
@@ -90,7 +90,7 @@ sub index_tasks{
     foreach my $task (@{$self->tasks}){
 	#$L->logdie("Non-unique task id: $task") 
 	if (exists $task_index{$task->id()}) {
-
+	    #die;
 	    $L->logdie("Non-unique task id: ".$task);
 	}
 	else {
