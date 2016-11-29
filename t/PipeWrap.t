@@ -12,6 +12,17 @@ use warnings;
 use Test::More;
 use Test::Class::Moose;
 use Test::Exception;
+use Log::Log4perl qw(:no_extra_logdie_message);
+
+my $conf = q(
+    log4perl.category                = INFO, Screen
+    log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
+    log4perl.appender.Screen.stderr  = 0
+    log4perl.appender.Screen.layout  = Log::Log4perl::Layout::SimpleLayout
+  );
+
+# ... passed as a reference to init()
+Log::Log4perl::init( \$conf );
 
 BEGIN { use_ok('PipeWrap') };
 
@@ -100,9 +111,10 @@ is ($new->{_task_index}->{$var3->{id}}, 2, "Test if _task_index increases to 2 f
 
 #$new->index_tasks(); #Frank fragen: Wie testet man erfolgreich "die"?
 #we tried expect to die, does not work with logdie but without:
- SKIP: {
+SKIP: {
+    #local $TODO = "Works somehow, you know^^";
 skip "Log4perl logdie problem", 1;
- dies_ok { $new = PipeWrap->new(tasks => [$var1, $var1, $var3]) } "Die!!!";
+dies_ok { $new = PipeWrap->new(tasks => [$var1, $var1, $var3]) } "Die!!!";
 
 };
 

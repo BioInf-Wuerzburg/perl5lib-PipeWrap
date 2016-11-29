@@ -53,10 +53,12 @@ has '_trace' => (is => 'rw', isa => 'Any', default => sub { {task_results => {},
 								 update_time => undef,
 								 task_done => undef}
 		 });
+
 							 
 
 =head2 bless_tasks
 
+=cut
 
 =head2 _set_tasks
 
@@ -67,7 +69,9 @@ sub _set_tasks {
     my $self = shift;
     my ($new_tasks, $old_tasks) = @_;
     $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @{$new_tasks} ];
+    $self->index_tasks();
     return $self->tasks;
+
 }
 
 
@@ -145,6 +149,11 @@ sub init_trace{
 load_trace() loads persistent trace
 
 =cut
+
+sub load_trace {
+
+}
+
 
 =head2 update_trace
 
