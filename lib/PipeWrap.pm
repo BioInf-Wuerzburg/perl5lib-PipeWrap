@@ -157,9 +157,9 @@ sub update_trace{
 
     $self->trace_update_time(time());
     $self->trace_task_done($self->current_task->id);
-    store($self->trace, $self->trace_file)
+    store($self->_trace, $self->trace_file)
 	|| $L->logdie("Cannot store updated trace file: ".$self->trace_file);
-    return $self->trace;
+    return $self->_trace;
 }
 
 =head2 current_task
