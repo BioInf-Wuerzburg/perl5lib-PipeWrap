@@ -5,7 +5,7 @@ use 5.010001;
 use Moose;
 #extends 'PipeWrap';
 
-use Log::Log4perl qw(:easy :no_extra_logdie_message);
+use Log::Log4perl;
 #use overload '""' => \&id;
 use Data::Dumper;
 
