@@ -126,13 +126,14 @@ is (time(), $new->{_trace}->{init_time}, "is time the true time");
 is (time(), $new->{_trace}->{update_time}, "is time the true time2");
 
 my $new_dies = PipeWrap->new(tasks => [$var1, $var2, $var3]);
-dies_ok { $new_dies->init_trace() } "init_trace died";
+dies_ok { $new_dies->init_trace() } "init_trace died: no file";
 
 #---------TESTS4update_trace()---------#
 
 can_ok ($class, "update_trace");
 #sleep(2);
 is ($new->update_trace(), $new->{_trace}, "Test update_trace");
+dies_ok { $new_dies->update_trace() } "update_trace died: no file";
 
 unlink $tmp_file;
 
