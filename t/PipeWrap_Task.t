@@ -9,6 +9,18 @@
 use strict;
 use warnings;
 
+use Log::Log4perl;
+
+my $conf = q(
+    log4perl.category                = INFO, Screen
+    log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
+    log4perl.appender.Screen.stderr  = 0
+    log4perl.appender.Screen.layout  = Log::Log4perl::Layout::SimpleLayout
+  );
+
+# ... passed as a reference to init()
+Log::Log4perl::init( \$conf );
+
 use Test::More;
 use Test::Class::Moose;
 BEGIN { use_ok('PipeWrap::Task') };
