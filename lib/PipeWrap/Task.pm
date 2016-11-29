@@ -6,7 +6,7 @@ use Moose;
 #extends 'PipeWrap';
 
 use Log::Log4perl qw(:easy :no_extra_logdie_message);
-use overload '""' => \&id;
+#use overload '""' => \&id;
 use Data::Dumper;
 
 #our @ISA = qw();
