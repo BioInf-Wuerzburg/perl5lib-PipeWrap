@@ -146,16 +146,57 @@ sub init_trace{
 
 =head2 load_trace
 
-load_trace() loads persistent trace
+load_trace() loads persistent trace.
 
 =cut
 
 sub load_trace {
     my ($self, $continue) = @_;
-    -e $self->tzrace_file
-	? $self->trace(retrieve($self->trace_file))
-	: $self->init_trace;
+    if (-e $self->trace_file) {
+	my $inputdata;
+	eval { $inputdata = retrieve($self->trace_file) };
+	if ($@) {
+	    $L->logdie("An unexpected error occured while trying to load file");
+	} else {
+	    $L->info("Import file trace from file");
+	    $self->_trace($inputdata)
+	}
+    } else {
+	$self->init_trace;
+}
 
+        if(! defined($self->trace_task_done) || ! length $self->trace_task_done){
+	$self->_task_iter(0);
+	$L->info("Running ",$self->id," from the beginning, no previous runs detected.");
+	return $self->_trace;
+    }
+
+    if(defined($continue) && length $continue){ # continue from specific task
+	if(exists $self->_task_index->{$continue}){
+ 	    if($self->_task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->_task_index->{$continue} -1}){
+		$L->logdie("You want to continue from '$continue', however the previous task ".($self->_task_index->{$continue} -1) ." never finished. Use force to overrule");
+	    }
+	    
+	    $L->info("Continuing after task '", $continue, "'");
+	    $self->_task_iter($self->_task_index->{$continue});
+
+	}else{
+	    $L->logdie("Cannot continue, task '", $continue, "' unknown");
+	}
+    }else{ # continue from last completed task
+	if(exists $self->_task_index->{$self->trace_task_done}){
+	    if($self->_task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
+		$L->logdie("Complete ",$self->id," run present, disable --continue to restart");
+	    }
+
+	    $L->info("Unfinished ",$self->id," run present, continuing after task '", $self->trace_task_done, "'");
+	    $self->_task_iter($self->_task_index->{$self->trace_task_done} + 1);
+
+	}else{
+	    $L->logdie("Cannot continue, previous ",$self->id," run ended with task '", $self->trace_task_done, "', which is not part of the current task sequence");
+	}
+    }
+    return $self->_trace;
 }
 
 
