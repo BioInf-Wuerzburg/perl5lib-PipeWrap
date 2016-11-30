@@ -111,7 +111,7 @@ is ($new->{_task_index}->{$var3->{id}}, 2, "Test if _task_index increases to 2 f
 
 #$new->index_tasks(); #Frank fragen: Wie testet man erfolgreich "die"?
 #we tried expect to die, does not work with logdie but without:
-throws_ok { PipeWrap->new(tasks => [$var1, $var1, $var3]) } qr/Non-unique task id/;
+throws_ok { PipeWrap->new(tasks => [$var1, $var1, $var3]) } qr/Non-unique task id/, "throw index_tasks: non-unique id";
 
 #---------TESTS4current_task()---------#
 
@@ -133,7 +133,7 @@ is (time(), $new->{_trace}->{init_time}, "is time the true time");
 is (time(), $new->{_trace}->{update_time}, "is time the true time2");
 
 my $new_dies = PipeWrap->new(tasks => [$var1, $var2, $var3]);
-throws_ok { $new_dies->init_trace() } qr/can't create/, "init_trace died: no file";
+throws_ok { $new_dies->init_trace() } qr/create/, "init_trace died: no file";
 
 #---------TESTS4update_trace()---------#
 
@@ -143,10 +143,6 @@ is ($new->update_trace(), $new->{_trace}, "Test update_trace");
 throws_ok { $new_dies->update_trace() } qr/can't create/, "update_trace died: no file";
 
 unlink $tmp_file;
-
-#---------TESTS4load_trace()---------#
-
-can_ok ($class, "load_trace");
 
 
 
