@@ -39,6 +39,8 @@ my $trace_file = "test.trace";
 my $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 #my $new_trace = PipeWrap->new(tasks => $tasks_trace);
 
+#----TESTS----#
+#---Load File or create new---#
 is ($new->load_trace(), $new->_trace, "Test if trace file is created");
 
 is (-e $trace_file, 1, "is trace file created?"); 
@@ -53,11 +55,33 @@ $new2->load_trace();
 
 is_deeply ($new2->_trace, $inputdata, "load tracefile");
 
+
+#----Run from New / no previous runs---#
 is ($new2->{_task_iter}, 0, "_task_iter reset to 0");
 
 $new->update_trace();
 
+
+#---continue after spec task----#
+#w/o force
 throws_ok { $new->load_trace("SwedishKitten") }  qr/Use force/, "must the force be with you!";
+
+#w/ force
+$new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file, force => "1");
+is ($new->{_task_iter}, 0, "_task_iter is 0");
+
+$new->load_trace("SwedishKitten");
+
+is ($new->{_task_iter}, 2, "_task_iter should now be 2");
+
+
+#unkown Task
+$new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
+
+throws_ok { $new->load_trace("Dogs") } qr/ unknown/, "Task unknown";
+
+
+
 
 
 
