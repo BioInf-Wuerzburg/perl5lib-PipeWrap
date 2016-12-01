@@ -80,15 +80,40 @@ $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
 throws_ok { $new->load_trace("Dogs") } qr/ unknown/, "Task unknown";
 
+#---continue form last completed task---#
+
+$new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
+
+$new->update_trace(); # "complete" first task 
+
+is ($new->{_task_iter}, 0, "'To be safe test1'");                        # just to be sure
+is_deeply ($new->trace_task_done, "AsianKitten", "'to be safe Test2'");  # better safe than sorry
 
 
+$new->load_trace();  
+is ($new->{_task_iter}, 1, "increased task_iter by 1");
+
+#---Test: Completed tasks---#
+$new->update_trace; #
+$new->load_trace;   #  Finish Tasks
+$new->update_trace; #
+
+throws_ok { $new->load_trace() } qr/Complete /, "Completed test";
 
 
+#--- Test Cannot continue ---#
+my $trace_file2 = "test2.trace";
+
+$new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file2);
+
+$new->trace_task_done("GingerKittens");
+
+throws_ok { $new->load_trace() } qr/Cannot /, "Cannot continue";
 
 
 #test for logdie in loading needed!
 
-unlink "test.trace";
-is (-e $trace_file, undef, "is file still there? shouldn't!");
+unlink "test.trace", "test2.trace";
+is (-e $trace_file && $trace_file2, undef, "are files still there? shouldn't!");
 
 done_testing();
