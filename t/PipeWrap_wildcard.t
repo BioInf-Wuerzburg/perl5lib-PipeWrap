@@ -34,5 +34,13 @@ my $trace_file = "test.trace";
 
 my $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
+my $tid = $new->current_task->id;
+
+is ($new->wildcard($tid), $tid, "no pattern test");
+
+my $p = '{LOL}';
+
+throws_ok { $new->wildcard($tid, $p) } qr /Unknown/, "unknown task id test";
+
 
 done_testing();
