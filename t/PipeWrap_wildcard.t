@@ -42,5 +42,10 @@ my $p = '{LOL}';
 
 throws_ok { $new->wildcard($tid, $p) } qr /Unknown/, "unknown task id test";
 
+$p = '{AsianKitten}';
+
+is ($new->wildcard($tid, $p), 'AsianKitten', "test for known id");
+
+
 
 done_testing();
