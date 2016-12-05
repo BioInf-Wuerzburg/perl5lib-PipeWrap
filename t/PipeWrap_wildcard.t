@@ -39,13 +39,15 @@ my $tid = $new->current_task->id;
 is ($new->wildcard($tid), $tid, "no pattern test");
 
 my $p = '{LOL}';
-
 throws_ok { $new->wildcard($tid, $p) } qr /Unknown/, "unknown task id test";
 
 $p = '{AsianKitten}';
-
 is ($new->wildcard($tid, $p), 'AsianKitten', "test for known id");
 
+$p = '[0]';
+is ($new->wildcard($tid, $p), 'AsianKitten', "test for absolute task idx");
 
+$p = '[-0]';
+is ($new->wildcard($tid, $p), 'AsianKitten', "test for absolute task idx");
 
 done_testing();
