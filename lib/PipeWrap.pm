@@ -244,13 +244,13 @@ sub wildcard{
 	return $tid; # this task
     } # id
     elsif((my $id) = $p =~ /^\{([^\}]+)}$/){
-	$L->logdie("Unknown task id '$id'") unless exists $self->task_index->{$id};
+	$L->logdie("Unknown task id '$id'") unless exists $self->_task_index->{$id};
 	return $id;
     } # idx
     elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
         return $rel 
-	    ? $self->tasks->[$self->task_index->{$tid} - $idx]->id  # relative task idx
-	    : $self->tasks->[$self->task_index->{$idx}]->id;        # absolute task idx
+	    ? $self->tasks->[$self->_task_index->{$tid} - $idx]->id  # relative task idx
+	    : $self->tasks->[$self->_task_index->{$idx}]->id;        # absolute task idx
     } # bin
     elsif($p =~ /^bin$/i){ # bin
 	return $RealBin.'/';
@@ -268,8 +268,8 @@ sub wildcard{
 	my $id;
 
 	# idx, abs/rel
-	$id = $self->tasks->[$self->task_index->{$tid} - $id_idx]->id if $type eq '[-';
-	$id = $self->tasks->[$self->task_index->{$id_idx}]->id if $type eq '[';
+	$id = $self->tasks->[$self->_task_index->{$tid} - $id_idx]->id if $type eq '[-';
+	$id = $self->tasks->[$self->_task_index->{$id_idx}]->id if $type eq '[';
 	$id = $id_idx if $type eq '{';
 
     	return $res ? eval '$self->trace_task_results->'."{$id}".$res : eval '$self->trace_task_results->'."{$id}";
