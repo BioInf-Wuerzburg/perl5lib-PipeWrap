@@ -1,10 +1,6 @@
 #!/usr/bin/env perl
-# Before 'make install' is performed this script should be runnable with
-# 'make test'. After 'make install' it should work as 'perl PipeWrap.t'
 
 ########################################################################
-
-# change 'tests => 1' to 'tests => last_test_to_print';
 
 use strict;
 use warnings;
@@ -81,21 +77,21 @@ $new->load_trace("SwedishKitten");
 is ($new->{_task_iter}, 2, "_task_iter should now be 2");
 
 
-# unkown Task
+# Unkown task
 
 $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
 throws_ok { $new->load_trace("Dogs") } qr/ unknown/, "Task unknown";
 
 
-# continue from last completed task
+# Continue from last completed task
 
 $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
 $new->update_trace(); # "complete" first task 
 
-is ($new->{_task_iter}, 0, "'To be safe test1'");                        # just to be sure
-is_deeply ($new->trace_task_done, "AsianKitten", "'to be safe Test2'");  # better safe than sorry
+is ($new->{_task_iter}, 0, "'To be safe test1'");                        # Just to be sure
+is_deeply ($new->trace_task_done, "AsianKitten", "'to be safe Test2'");  # Better safe than sorry
 
 $new->load_trace();  
 is ($new->{_task_iter}, 1, "increased task_iter by 1");
@@ -104,7 +100,7 @@ is ($new->{_task_iter}, 1, "increased task_iter by 1");
 # Test: Completed tasks
 
 $new->update_trace; #
-$new->load_trace;   #  Finish Tasks
+$new->load_trace;   #  Finish tasks
 $new->update_trace; #
 
 throws_ok { $new->load_trace() } qr/Complete /, "Completed test";
