@@ -250,7 +250,7 @@ sub wildcard{
     elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
         return $rel 
 	    ? $self->tasks->[$self->_task_index->{$tid} - $idx]->id  # relative task idx
-	    : $self->tasks->[$self->_task_index->{$idx}]->id;        # absolute task idx
+	    : $self->tasks->[$idx]->id;        # absolute task idx
     } # bin
     elsif($p =~ /^bin$/i){ # bin
 	return $RealBin.'/';
