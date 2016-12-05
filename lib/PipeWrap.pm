@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 package PipeWrap;
 
 use 5.010001;
@@ -29,12 +31,13 @@ Used in chloroExtractor, a scientific tool for extraction of chloroplast dna out
 =head1 DESCRIPTION
 
 Checkpoint system that supervises a given order of tasks given by a config file.
+Tasks are tracked in a .trace file.
 
 =head2 new
 
 PipeWrap::new();
 
-new() creates PipeWrap object with given options from config file
+new() creates PipeWrap object with given options from config file.
 
 =cut
 
@@ -202,7 +205,7 @@ sub load_trace {
 
 =head2 update_trace
 
-update_trace() stores latest pipeline status to trace
+update_trace() stores latest pipeline status in .trace file
 
 =cut
 
@@ -227,9 +230,60 @@ sub current_task{
     return $self->tasks->[$self->_task_iter];
 }
 
+=head2 wildcard
+
+wildcard() checks tasks for patterns and dies in doubt of non_identifyable tasks.
+
+=cut
+    
+sub wildcard{
+    my ($self, $tid, $p) = @_;
+    my ($tix, $rel, $idx, $res);
+
+    if(! $p){
+	return $tid; # this task
+    } # id
+    elsif((my $id) = $p =~ /^\{([^\}]+)}$/){
+	$L->logdie("Unknown task id '$id'") unless exists $self->task_index->{$id};
+	return $id;
+    } # idx
+    elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
+        return $rel 
+	    ? $self->tasks->[$self->task_index->{$tid} - $idx]->id  # relative task idx
+	    : $self->tasks->[$self->task_index->{$idx}]->id;        # absolute task idx
+    } # bin
+    elsif($p =~ /^bin$/i){ # bin
+	return $RealBin.'/';
+    } # opt
+    elsif($p =~ /^opt([\{\[].*[\]\}])/){
+	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
+	$res = eval '$self->opt->'."$1";
+	return ref $res eq 'ARRAY' ? "@$res" : $res;
+    } # res
+    elsif((my $type, my $id_idx, $res) = $p =~ /^res
+		(\[-|\{|\[)		# [- or [ or {
+		([^\}\]]+)[\}\]]	# not ] or }, ] or }
+		(.*)?/x			# result access
+	){
+	my $id;
+
+	# idx, abs/rel
+	$id = $self->tasks->[$self->task_index->{$tid} - $id_idx]->id if $type eq '[-';
+	$id = $self->tasks->[$self->task_index->{$id_idx}]->id if $type eq '[';
+	$id = $id_idx if $type eq '{';
+
+    	return $res ? eval '$self->trace_task_results->'."{$id}".$res : eval '$self->trace_task_results->'."{$id}";
+    }else{
+	$L->logdie("unknown pattern $p");
+    }
+}
+
 #---------<<<<<<<<<#####################>>>>>>>>>---------#
 #---------<<<<<<<<<###---accessors---###>>>>>>>>>---------#
-#---------<<<<<<<<<#####################>>>>>>>>>---------#                                          
+#---------<<<<<<<<<#####################>>>>>>>>>---------#                           
+
+# Basic accessors are provided by Moose. See Moose manual for further explanations.
+               
 =head1 ACCESSORS
 =cut
 =head2 id
