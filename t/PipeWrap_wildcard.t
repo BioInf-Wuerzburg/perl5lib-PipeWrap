@@ -10,7 +10,7 @@ use Test::Class::Moose;
 use Test::Exception;
 use Log::Log4perl;
 use Storable;
-
+use FindBin qw($RealBin);
 
 my $conf = q(
     log4perl.category                = INFO, Screen
@@ -49,5 +49,9 @@ is ($new->wildcard($tid, $p), 'AsianKitten', "test for absolute task idx");
 
 $p = '[-0]';
 is ($new->wildcard($tid, $p), 'AsianKitten', "test for absolute task idx");
+
+$p = 'bin';
+is ($new->wildcard($tid, $p), $RealBin.'/', "bin test");
+
 
 done_testing();
