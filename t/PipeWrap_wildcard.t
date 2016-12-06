@@ -53,5 +53,23 @@ is ($new->wildcard($tid, $p), 'AsianKitten', "test for absolute task idx");
 $p = 'bin';
 is ($new->wildcard($tid, $p), $RealBin.'/', "bin test");
 
+$p = 'opt[Kittens]';
+throws_ok { $new->wildcard($tid, $p) } qr/does not exist/, "test for opt [array], DIE";
+
+$p = 'opt{GingerKitten}';
+throws_ok { $new->wildcard($tid, $p) } qr/does not exist/, "test for opt {hash}, DIE";
+
+$new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file, opt => {'Kittens' => [1,2,3],
+			                                                 'GingerKitten' => 'soulless'});
+
+$p = 'opt{Kittens}';
+is_deeply ($new->wildcard($tid, $p), "1 2 3", "test for opt \@array");
+
+$p = 'opt{GingerKitten}';
+is_deeply ($new->wildcard($tid, $p), "soulless", "test for opt \$string");
+
+ 
+
+
 
 done_testing();
