@@ -269,7 +269,7 @@ sub wildcard{
 
 	# idx, abs/rel
 	$id = $self->tasks->[$self->_task_index->{$tid} - $id_idx]->id if $type eq '[-';
-	$id = $self->tasks->[$self->_task_index->{$id_idx}]->id if $type eq '[';
+	$id = $self->tasks->[$id_idx]->id if $type eq '[';
 	$id = $id_idx if $type eq '{';
 
     	return $res ? eval '$self->trace_task_results->'."{$id}".$res : eval '$self->trace_task_results->'."{$id}";
