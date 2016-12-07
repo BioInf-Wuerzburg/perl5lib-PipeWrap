@@ -30,7 +30,7 @@ can_ok ($class, "wildcard");
 
 my $tasks = [ {id => "AsianKitten", cmd => [ "berserk!" ]}, {id => "BlackKitten", cmd => ["smile"]}, {id => "SwedishKitten", cmd => ["pillage"]} ];
 
-my $trace_file = "test.trace"; 
+my $trace_file = "test_wildcard.trace"; 
 
 my $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
@@ -85,5 +85,7 @@ is ($new->wildcard($tid, $p), 'done', 'test for result3');
 
 $p = 'Nope no Kittens for you!';
 throws_ok { $new->wildcard($tid, $p) } qr/unknown pattern $p/, "Unknown Pattern test";
+
+unlink "test_wildcard.trace";
 
 done_testing();
