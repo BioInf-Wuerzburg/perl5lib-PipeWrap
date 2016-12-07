@@ -122,6 +122,24 @@ resolves given task and returns corresponding cmd
 
 =cut
 
+sub resolve_task{
+   my ($self, $task) = @_;
+   my $tid = $task->id;
+   my $cmd = $task->cmd;
+
+   for(my $i=0;$i<@$cmd; $i++){
+       my $x;
+       while($cmd->[$i] =~ s/%([^%]*?)%/
+		 $self->wildcard($tid, $1)
+		 /gex){
+       }
+   }
+   $L->debug("@$cmd");
+   return $cmd;
+}
+
+
+
 =head2 wildcard
 
 skipped because of ????
