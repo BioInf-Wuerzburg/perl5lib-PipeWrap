@@ -113,6 +113,47 @@ $new->run();
 run() runs current task give by object, increases tasknumber, saves current task number, can skip tasks, returns current task
 
 =cut
+    
+sub run{
+    my ($self) = @_;
+    if($self->task_iter == @{$self->tasks}){
+	$self->task_iter(0); # reset to 0
+	$L->info($self->id, " pipeline completed");
+	return undef;
+    }elsif($self->task_iter > @{$self->tasks}){
+	$L->logdie("Trying to run a task outside the index");
+    }
+
+    # prep task
+    my $task = $self->current_task;
+    
+    # skip
+    if(grep{
+	$_ =~ /^[\/?]/
+	    ? "$task" =~ $_
+	    : "$task" eq $_
+       }@{$self->skip}){
+
+	$L->info("Skipping '$tid', reusing old results if requested by other tasks");
+
+    }else{
+
+	# resolve dependencies
+	$self->resolve_task($task);
+
+	$L->info("Running '$task': @{$task->cmd()}");
+
+	$self->trace_task_results->{"$task"} = $task->run();
+    }
+
+    # store results
+    $self->update_trace();
+
+    # incr. task
+    $self->{_task_iter}++;
+
+    return "$task";
+}
 
 =head2 resolve_task
 
