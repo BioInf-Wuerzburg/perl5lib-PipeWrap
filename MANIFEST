@@ -8,6 +8,7 @@ t/PipeWrap_Task_parse_csv.t
 t/PipeWrap_load_trace.t
 t/PipeWrap_resolve_task.t
 t/PipeWrap_run.t
+t/PipeWrap_run2.t
 t/PipeWrap_wildcard.t
 t/PipeWrap_Task.t
 lib/PipeWrap.pm
