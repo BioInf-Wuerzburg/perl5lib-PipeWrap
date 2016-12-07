@@ -126,22 +126,22 @@ sub run{
 
     # prep task
     my $task = $self->current_task;
-    
+    my $taskid = $task->id;
     # skip
     if(grep{
 	$_ =~ /^[\/?]/
-	    ? "$task" =~ $_
-	    : "$task" eq $_
+	    ? "$taskid" =~ $_
+	    : "$taskid" eq $_
        }@{$self->skip}){
 
-	$L->info("Skipping '$task', reusing old results if requested by other tasks");
+	$L->info("Skipping '$taskid', reusing old results if requested by other tasks");
 
     }else{
 
 	# resolve dependencies
 	$self->resolve_task($task);
 
-	$L->info("Running '$task': @{$task->cmd()}");
+	$L->info("Running '$taskid': @{$task->cmd()}");
 
 	$self->trace_task_results->{"$task"} = $task->run();
     }
