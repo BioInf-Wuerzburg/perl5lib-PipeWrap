@@ -116,11 +116,11 @@ run() runs current task give by object, increases tasknumber, saves current task
     
 sub run{
     my ($self) = @_;
-    if($self->task_iter == @{$self->tasks}){
-	$self->task_iter(0); # reset to 0
+    if($self->_task_iter == @{$self->tasks}){
+	$self->_task_iter(0); # reset to 0
 	$L->info($self->id, " pipeline completed");
 	return undef;
-    }elsif($self->task_iter > @{$self->tasks}){
+    }elsif($self->_task_iter > @{$self->tasks}){
 	$L->logdie("Trying to run a task outside the index");
     }
 
@@ -134,7 +134,7 @@ sub run{
 	    : "$task" eq $_
        }@{$self->skip}){
 
-	$L->info("Skipping '$tid', reusing old results if requested by other tasks");
+	$L->info("Skipping '$task', reusing old results if requested by other tasks");
 
     }else{
 
