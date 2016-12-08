@@ -59,4 +59,13 @@ my $new2 = PipeWrap::Task->new($hash);
 can_ok($class, "run");
 is ($new2->run(), "Task\tperl\n", "Test run");
 
+my $parsertest = PipeWrap::Task->new({id => 'foo', cmd => [qw(perl -e 'print "Task\tperl\n"')], parser => \&parser_test});
+
+is($parsertest->run(), "Task\tperl\n", "Test custom parser");
+
 done_testing();
+
+sub parser_test {
+    my ($fh) = @_;            
+    return scalar do{local $/; <$fh>}
+}
