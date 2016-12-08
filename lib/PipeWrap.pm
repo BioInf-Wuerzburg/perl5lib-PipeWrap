@@ -216,9 +216,9 @@ sub load_trace {
 	}
     } else {
 	$self->init_trace;
-}
+    }
 
-        if(! defined($self->trace_task_done) || ! length $self->trace_task_done){
+    if(! defined($self->trace_task_done) || ! length $self->trace_task_done){
 	$self->_task_iter(0);
 	$L->info("Running ",$self->id," from the beginning, no previous runs detected.");
 	return $self->_trace;
@@ -321,8 +321,13 @@ sub wildcard{
 	$id = $self->tasks->[$self->_task_index->{$tid} - $id_idx]->id if $type eq '[-';
 	$id = $self->tasks->[$id_idx]->id if $type eq '[';
 	$id = $id_idx if $type eq '{';
-
-    	return $res ? eval '$self->trace_task_results->'."{$id}".$res : eval '$self->trace_task_results->'."{$id}";
+	
+	my $returnval = $self->trace_task_results->{$id};
+	if ($res) {
+	    $returnval .= $res;
+	}	   
+	return $returnval;
+	  	
     }else{
 	$L->logdie("unknown pattern $p");
     }
@@ -426,8 +431,10 @@ set and get task_results
 =cut
 
 sub trace_task_results{
-    my ($self, $trace_task_results, $force) = @_;
-    if (defined($trace_task_results || $force)) {
+    my $self = shift;
+    #test if additional parameters provided given 
+    if (@_) {
+	my $trace_task_results = shift;
 	$self->_trace->{task_results} = $trace_task_results;
     }
     return $self->_trace->{task_results};
@@ -490,7 +497,7 @@ __END__
 
 #---------<<<<<<<<<#####################>>>>>>>>>---------#
 #---------<<<<<<<<<###---COPYRIGHT---###>>>>>>>>>---------#
-#---------<<<<<<<<<###------AND------###>>>>>>>>>---------#
+#---------<<<<<<<<<###------AND-----###>>>>>>>>>---------#
 #---------<<<<<<<<<###----LICENSE----###>>>>>>>>>---------#                                         
 #---------<<<<<<<<<#####################>>>>>>>>>---------#                                         
 
