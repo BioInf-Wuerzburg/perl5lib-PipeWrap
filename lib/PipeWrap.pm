@@ -298,9 +298,16 @@ sub wildcard{
 	return $id;
     } # idx
     elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
-        return $rel 
-	    ? $self->tasks->[$self->_task_index->{$tid} - $idx]->id  # relative task idx
-	    : $self->tasks->[$idx]->id;        # absolute task idx
+        my $return_idx;
+	if ($rel) {
+	    $return_idx = $self->tasks->[$self->_task_index->{$tid} - $idx]->id; #relative path
+	}
+	else {
+	    $return_idx = $self->tasks->[$idx]->id; #absolute path
+	}
+	
+	return $return_idx;
+	  
     } # bin
     elsif($p =~ /^bin$/i){ # bin
 	return $RealBin.'/';
@@ -308,7 +315,15 @@ sub wildcard{
     elsif($p =~ /^opt([\{\[].*[\]\}])/){
 	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
 	$res = eval '$self->opt->'."$1";
-	return ref $res eq 'ARRAY' ? "@$res" : $res;
+	my $return_opt;
+	if (ref $res eq 'ARRAY') {
+	    $return_opt = "@$res";
+	}
+	else {
+	    $return_opt = $res;
+	}
+	return $return_opt;
+	
     } # res
     elsif((my $type, my $id_idx, $res) = $p =~ /^res
 		(\[-|\{|\[)		# [- or [ or {
@@ -318,12 +333,19 @@ sub wildcard{
 	my $id;
 
 	# idx, abs/rel
-	$id = $self->tasks->[$self->_task_index->{$tid} - $id_idx]->id if $type eq '[-';
-	$id = $self->tasks->[$id_idx]->id if $type eq '[';
-	$id = $id_idx if $type eq '{';
+	if($type eq '[-') {
+	    $id = $self->tasks->[$self->_task_index->{$tid} - $id_idx]->id;
+	}
+	if($type eq '[') {
+	    $id = $self->tasks->[$id_idx]->id;
+	}
+
+	if($type eq '{') {
+	    $id = $id_idx;
+	}
 	
 	my $returnval = $self->trace_task_results->{$id};
-	if ($res) {
+	if($res) {
 	    $returnval .= $res;
 	}	   
 	return $returnval;
@@ -450,9 +472,11 @@ set and get update of time trace
 =cut
 
 sub trace_update_time{
-    my ($self, $trace_update_time, $force) = @_;
-    if (defined($trace_update_time || $force)) {
-        $self->_trace->{update_time} = $trace_update_time;
+    
+    my $self = shift;
+    if (@_) {
+	my $trace_update_time = shift;
+	$self->_trace->{update_time} = $trace_update_time;
     }
     return $self->_trace->{update_time};
 
@@ -467,9 +491,10 @@ set and get initial time trace
 =cut
 
 sub trace_init_time{
-    my ($self, $trace_init_time, $force) = @_;
-    if (defined($trace_init_time || $force)) {
-        $self->_trace->{init_time} = $trace_init_time;
+    my $self = shift;
+    if (@_) {
+	my $trace_init_time = shift;
+	$self->_trace->{init_time} = $trace_init_time;
     }
     return $self->_trace->{init_time};
 
@@ -484,8 +509,9 @@ set and get trace of completed tasks
 =cut
 
 sub trace_task_done{
-    my ($self, $trace_task_done, $force) = @_;
-    if (defined($trace_task_done || $force)) {
+    my $self = shift;
+    if (@_) {
+	my $trace_task_done = shift;
         $self->_trace->{task_done} = $trace_task_done;
     }
     return $self->_trace->{task_done};
