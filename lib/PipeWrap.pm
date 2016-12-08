@@ -17,7 +17,6 @@ use Log::Log4perl; #qw(:no_extra_logdie_message);
 our $VERSION = '0.1';
 
 my $L = Log::Log4perl::get_logger();
-# Preloaded methods go here.
 
 =head1 NAME
 
@@ -178,14 +177,6 @@ sub resolve_task{
    $L->debug("@$cmd");
    return $cmd;
 }
-
-
-
-=head2 wildcard
-
-skipped because of ????
-
-=cut
 
 =head2 init_trace
 
@@ -499,7 +490,8 @@ __END__
 
 #---------<<<<<<<<<#####################>>>>>>>>>---------#
 #---------<<<<<<<<<###---COPYRIGHT---###>>>>>>>>>---------#
-#---------<<<<<<<<<###------AND------###>>>>>>>>>---------#                                         #---------<<<<<<<<<###----LICENSE----###>>>>>>>>>---------#                                         
+#---------<<<<<<<<<###------AND------###>>>>>>>>>---------#
+#---------<<<<<<<<<###----LICENSE----###>>>>>>>>>---------#                                         
 #---------<<<<<<<<<#####################>>>>>>>>>---------#                                         
 
 =head1 SEE ALSO                                                                 
@@ -508,8 +500,9 @@ Mention other use
 =head1 AUTHOR
 
 Thomas Hackl, E<lt>mail<gt>\n
+Frank Förster, E<lt>mail<gt>\n
 Simon Pfaff, E<lt>simon.pfaff@stud-mail.uni-wuerzburg.de<gt>\n
-Aaron Sigmund, E<lt>aaron.sigmund@stud-mail.uni-wuerzburg.de<gt>
+Aaron Sigmund, E<lt>aaron.sigmund@stud-mail.uni-wuerzburg.de<gt>\n
 
 =head1 COPYRIGHT AND LICENSE
 

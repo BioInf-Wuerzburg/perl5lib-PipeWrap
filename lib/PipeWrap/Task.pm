@@ -3,27 +3,16 @@ package PipeWrap::Task;
 use 5.010001;
 
 use Moose;
-#extends 'PipeWrap';
-
 use Log::Log4perl;
-#use overload '""' => \&id;
 use Data::Dumper;
 
 #our @ISA = qw();
 
 #---------globals---------#
 
-
 our $VERSION = '0.1';
 
 my $L = Log::Log4perl::get_logger();
-
-
-# Preloaded methods go here.
-
-
-
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
@@ -128,11 +117,12 @@ $new->id() get id
 $new->id($id) set id
 
 =cut
-1;
+
 =head2 parser
 
 $new->parser() get result parser
 $new->parser($parser) set result parser
 
 =cut
+1;
 __END__
