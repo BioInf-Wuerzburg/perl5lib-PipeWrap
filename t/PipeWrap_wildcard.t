@@ -70,7 +70,7 @@ is_deeply ($new->wildcard($tid, $p), "soulless", "test for opt \$string");
 
 
 $new->trace_task_results({'AsianKitten' => 'done'});
-#$new->trace_task_results->{AsianKitten} = "done";
+
 $p = 'res{AsianKitten}';
 is ($new->wildcard($tid, $p), 'done', 'test for result1');
 
@@ -80,8 +80,8 @@ is ($new->wildcard($tid, $p), 'done', 'test for result2');
 $p = 'res[0]';
 is ($new->wildcard($tid, $p), 'done', 'test for result3');
 
-#$p = 'res[0]{"Nope"}';
-#is ($new->wildcard($tid, $p), 'done', 'test for result4');
+$p = 'res[0]{"Nope"}';
+is ($new->wildcard($tid, $p), 'done{"Nope"}', 'test for result4');
 
 $p = 'Nope no Kittens for you!';
 throws_ok { $new->wildcard($tid, $p) } qr/unknown pattern $p/, "Unknown Pattern test";
