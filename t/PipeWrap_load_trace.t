@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-########################################################################
-
 use strict;
 use warnings;
 
@@ -10,7 +8,7 @@ use Test::Class::Moose;
 use Test::Exception;
 use Log::Log4perl;
 use Storable;
-
+use List::Util qw(shuffle);
 
 my $conf = q(
     log4perl.category                = INFO, Screen
@@ -31,19 +29,32 @@ can_ok ($class, "load_trace");
 my $tasks = [ {id => "AsianKitten", cmd => [ "berserk!" ]}, {id => "BlackKitten", cmd => ["smile"]}, {id => "SwedishKitten", cmd => ["pillage"]} ];
 
 my $trace_file = "test.trace"; 
-
+my $trace_file_broken = $trace_file."_broken";
 my $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
 # my $new_trace = PipeWrap->new(tasks => $tasks_trace);
 
-
-##############################----TESTS----##############################
-
 # Load or create a trace file, which contains the status of tasks
 
-is ($new->load_trace(), $new->_trace, "Test if trace file is created");
+my $expected = $new->_trace;
 
-is (-e $trace_file, 1, "is trace file created?"); 
+is($new->load_trace(), $expected, "Test if trace file is created");
+
+ok(-e $trace_file, "is trace file created?"); 
+open(FH, "<", $trace_file) or die;
+open(WH, ">", $trace_file_broken) or die;
+binmode(FH);
+my $filesize = -s $trace_file;
+read(FH, my $content, $filesize);
+my @output = shuffle split //, $content;
+
+print WH join("", @output);
+close(WH) or die;
+close(FH) or die;
+
+my $PW_obj = PipeWrap->new(tasks => $tasks, trace_file => $trace_file_broken);
+
+throws_ok {$PW_obj->load_trace} qr/An unexpected error occured while trying to load file/, "is trace_file broken?";  
 
 my $inputdata = retrieve($trace_file);
 
@@ -119,7 +130,7 @@ throws_ok { $new->load_trace() } qr/Cannot /, "Cannot continue";
 
 # Test for logdie in loading needed!
 
-unlink "test.trace", "test2.trace";
+unlink "test.trace", "test2.trace", "test.trace_broken";
 is (-e $trace_file && $trace_file2, undef, "are files still there? shouldn't!");
 
 done_testing();
