@@ -191,7 +191,9 @@ sub init_trace{
 
     $self->trace_init_time(time());
     $self->trace_update_time(time());
-
+    
+    $self->trace_file($self->id.".trace") unless $self->trace_file;
+    
     store($self->_trace, $self->trace_file)
 	|| $L->logdie("Cannot create trace file: ".$self->trace_file);
     return $self->_trace;

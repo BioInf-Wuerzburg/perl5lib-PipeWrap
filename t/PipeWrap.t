@@ -132,18 +132,27 @@ is (time(), $new->{_trace}->{init_time}, "is time the true time");
 #sleep(2);
 is (time(), $new->{_trace}->{update_time}, "is time the true time2");
 
-my $new_dies = PipeWrap->new(tasks => [$var1, $var2, $var3]);
-throws_ok { $new_dies->init_trace() } qr/create/, "init_trace died: no file";
+#my $new_dies = PipeWrap->new(tasks => [$var1, $var2, $var3]);
+#throws_ok { $new_dies->init_trace() } qr/create/, "init_trace died: no file";
+
+my $new_nofile = PipeWrap->new(tasks => [$var1, $var2, $var3]);
+
+is ($new_nofile->init_trace(), $new_nofile->{_trace}, "Test init_trace_nofile");
+
+is (time(), $new_nofile->{_trace}->{init_time}, "is time the true time_nofile");
+#sleep(2);
+is (time(), $new_nofile->{_trace}->{update_time}, "is time the true time2_nofile");
 
 #---------TESTS4update_trace()---------#
 
 can_ok ($class, "update_trace");
 #sleep(2);
 is ($new->update_trace(), $new->{_trace}, "Test update_trace");
-throws_ok { $new_dies->update_trace() } qr/can't create/, "update_trace died: no file";
+#throws_ok { $new_dies->update_trace() } qr/can't create/, "update_trace died: no file";
+is ($new_nofile->update_trace(), $new_nofile->{_trace}, "Test update_trace");
 
 unlink $tmp_file;
-
+unlink 'PipeWrap.t.trace';
 
 
 
