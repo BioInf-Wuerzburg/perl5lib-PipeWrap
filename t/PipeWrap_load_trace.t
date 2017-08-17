@@ -38,7 +38,7 @@ my $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
 
 my $expected = $new->_trace;
 
-is($new->load_trace(), $expected, "Test if trace file is created");
+is_deeply($new->load_trace(), $expected, "Test if trace file is created");
 
 ok(-e $trace_file, "is trace file created?"); 
 open(FH, "<", $trace_file) or die;
@@ -52,9 +52,8 @@ print WH join("", @output);
 close(WH) or die;
 close(FH) or die;
 
-my $PW_obj = PipeWrap->new(tasks => $tasks, trace_file => $trace_file_broken);
 
-throws_ok {$PW_obj->load_trace} qr/An unexpected error occured while trying to load file/, "is trace_file broken?";  
+throws_ok {my $PW_obj = PipeWrap->new(tasks => $tasks, trace_file => $trace_file_broken, continue => 'AsianKitten')} qr/An unexpected error occured while trying to load file/, "is trace_file broken?";  
 
 my $inputdata = retrieve($trace_file);
 
@@ -79,10 +78,13 @@ $new->update_trace();
 
 throws_ok { $new->load_trace("SwedishKitten") }  qr/Use force/, "must the force be with you!";
 
+#unlink $trace_file;
+
 # w/ force
 $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file, force => "1");
 is ($new->{_task_iter}, 0, "_task_iter is 0");
 
+$new->update_trace();
 $new->load_trace("SwedishKitten");
 
 is ($new->{_task_iter}, 2, "_task_iter should now be 2");
@@ -91,6 +93,7 @@ is ($new->{_task_iter}, 2, "_task_iter should now be 2");
 # Unkown task
 
 $new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file);
+$new->update_trace();
 
 throws_ok { $new->load_trace("Dogs") } qr/ unknown/, "Task unknown";
 
@@ -121,9 +124,10 @@ throws_ok { $new->load_trace() } qr/Complete /, "Completed test";
 
 my $trace_file2 = "test2.trace";
 
-$new = PipeWrap->new(tasks => $tasks, trace_file => $trace_file2);
+my $trace = {task_results => {}, init_time => undef, update_time => undef, task_done => "GingerKitten"};
 
-$new->trace_task_done("GingerKittens");
+$new = PipeWrap->new(trace_file => $trace_file2, tasks => $tasks, _trace => $trace);
+
 
 throws_ok { $new->load_trace() } qr/Cannot /, "Cannot continue";
 

@@ -72,6 +72,12 @@ sub _set_tasks {
     my ($new_tasks, $old_tasks) = @_;
     $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @{$new_tasks} ];
     $self->index_tasks();
+    
+    defined($self->continue) 
+	? $self->load_trace($self->continue)
+	: $self->init_trace();
+
+    
     return $self->tasks;
 
 }
@@ -213,7 +219,7 @@ sub load_trace {
 	if ($@) {
 	    $L->logdie("An unexpected error occured while trying to load file");
 	} else {
-	    $L->info("Import file trace from file");
+	    $L->info("Import file: trace from file");
 	    $self->_trace($inputdata)
 	}
     } else {
