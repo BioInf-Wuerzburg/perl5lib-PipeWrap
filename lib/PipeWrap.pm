@@ -72,6 +72,8 @@ sub _set_tasks {
     my ($new_tasks, $old_tasks) = @_;
     $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @{$new_tasks} ];
     $self->index_tasks();
+
+    $self->trace_file($self->id.".trace") unless $self->trace_file;
     
     defined($self->continue) 
 	? $self->load_trace($self->continue)
@@ -198,7 +200,7 @@ sub init_trace{
     $self->trace_init_time(time());
     $self->trace_update_time(time());
     
-    $self->trace_file($self->id.".trace") unless $self->trace_file;
+    #$self->trace_file($self->id.".trace") unless $self->trace_file;
     
     store($self->_trace, $self->trace_file)
 	|| $L->logdie("Cannot create trace file: ".$self->trace_file);
