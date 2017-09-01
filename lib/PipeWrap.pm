@@ -1,98 +1,95 @@
+#!/usr/bin/env perl
+
 package PipeWrap;
 
-use Log::Log4perl qw(:easy :no_extra_logdie_message);
+use 5.010001;
+use Moose;
+use PipeWrap::Task;
+
 use FindBin qw($RealBin $Script);
 use File::Basename;
 use Storable;
-
 use Data::Dumper;
+use Log::Log4perl; #qw(:no_extra_logdie_message);
 
-use overload '""' => \&id;
-use PipeWrap::Task;
+#our @ISA = qw();
 
-#-----------------------------------------------------------------------------#
-# Globals
-
-our $VERSION = '0.01';
+our $VERSION = '0.1';
 
 my $L = Log::Log4perl::get_logger();
 
+=head1 NAME
 
+PipeWrap - Checkpoint system for perl modules.
+Used in chloroExtractor, a scientific tool for extraction of chloroplast dna out of a whole plant genome.
 
-#-----------------------------------------------------------------------------#
+=head1 SYNOPSIS
+
+  use PipeWrap;
+
+=head1 DESCRIPTION
+
+Checkpoint system that supervises a given order of tasks given by a config file.
+Tasks are tracked in a .trace file.
+
 =head2 new
+
+PipeWrap::new();
+
+new() creates PipeWrap object with given options from config file.
 
 =cut
 
-sub new{
+has 'id' => (is => 'rw', isa => 'Any', default => basename($Script, qw(.pl .PL)));
+has 'tasks' => (is => 'rw', isa => 'ArrayRef', trigger => \&_set_tasks);
+has 'continue' => (is => 'rw', isa => 'Any', default => undef);
+has 'skip' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'trace_file' => (is => 'rw', isa => 'Any', default => undef);
+has 'opt' => (is => 'rw', isa => 'HashRef', default => sub { {} });
+has 'force' => (is => 'rw', isa => 'Any', default => undef);
 
-    $L->debug("initiating object");
+has '_task_iter' => (is => 'rw', isa => 'Int', default => 0);
+has '_task_index' => (is => 'rw', isa => 'HashRef', default => sub { {} });
+has '_trace' => (is => 'rw', isa => 'Any', default => sub { {task_results => {},
+								 init_time => undef,
+								 update_time => undef,
+								 task_done => undef}
+		 });
 
-    my $proto = shift;
-    my $self;
-    my $class;
-    
-    # object method -> clone + overwrite
-    if($class = ref $proto){ 
-	return bless ({%$proto, @_}, $class);
-    }
-
-    # class method -> construct + overwrite
-    # init empty obj
-    $self = {
-	# default
-	id => basename($Script, qw(.pl .PL)),
-	tasks => [],
-	continue => undef,
-	skip => [],
-	trace_file => undef,	
-	opt => {},
-	force => undef,
-	# overwrite
-	@_,
-	# protected privates
-	_task_iter => 0,
-	_task_index => {},
-	_trace => {
-	    task_results => {},
-	    init_time => undef,
-	    update_time => undef,
-	    task_done => undef,
-	},
-    };
-
-    bless $self, $proto;    
-
-    $self->trace_file($self->id.".trace") unless $self->trace_file;
-
-    $self->bless_tasks();
-
-    $self->index_tasks();
-
-    defined($self->continue) 
-	? $self->load_trace($self->continue)
-	: $self->init_trace();
-
-    return $self;
-}
-
-
+							 
 
 =head2 bless_tasks
 
 =cut
 
-sub bless_tasks{
-    my ($self) = @_;
+=head2 _set_tasks
 
-    return $self->tasks([
-	map{
-	    ref($_) eq 'PipeWrap::Task' ? $_ : PipeWrap::Task->new(%$_) 
-	}@{$self->tasks}
-	]);
+
+=cut
+
+sub _set_tasks {
+    my $self = shift;
+    my ($new_tasks, $old_tasks) = @_;
+    $self->{tasks} = [ map{ PipeWrap::Task->new(%$_) } @{$new_tasks} ];
+    $self->index_tasks();
+
+    $self->trace_file($self->id.".trace") unless $self->trace_file;
+    
+    defined($self->continue) 
+	? $self->load_trace($self->continue)
+	: $self->init_trace();
+
+    
+    return $self->tasks;
+
 }
 
+
 =head2 index_tasks
+
+$new->index_tasks();
+
+index_tasks() indicates all given tasks
 
 =cut
 
@@ -101,48 +98,57 @@ sub index_tasks{
     my $i=0;
     my %task_index;
     foreach my $task (@{$self->tasks}){
-	$L->logdie("Non-unique task id: $task") if exists $task_index{"$task"};
-	$task_index{"$task"} = $i;
+	#$L->logdie("Non-unique task id: $task") 
+	if (exists $task_index{$task->id()}) {
+	    #die;
+	    $L->logdie("Non-unique task id: ".$task);
+	}
+	else {
+	
+	$task_index{$task->id()} = $i;
 	$i++;
-    }
-    
+	
+    } 
+}   
     $self->{_task_index} = \%task_index;
 }
 
-
-
 =head2 run
 
-=cut
+$new->run();
 
+run() runs current task give by object, increases tasknumber, saves current task number, can skip tasks, returns current task
+
+=cut
+    
 sub run{
     my ($self) = @_;
-    if($self->task_iter == @{$self->tasks}){
-	$self->task_iter(0); # reset to 0
+    if($self->_task_iter == @{$self->tasks}){
+	$self->_task_iter(0); # reset to 0
 	$L->info($self->id, " pipeline completed");
 	return undef;
-    }elsif($self->task_iter > @{$self->tasks}){
+    }elsif($self->_task_iter > @{$self->tasks}){
 	$L->logdie("Trying to run a task outside the index");
     }
 
     # prep task
     my $task = $self->current_task;
-    
+    my $taskid = $task->id;
     # skip
     if(grep{
 	$_ =~ /^[\/?]/
-	    ? "$task" =~ $_
-	    : "$task" eq $_
+	    ? "$taskid" =~ $_
+	    : "$taskid" eq $_
        }@{$self->skip}){
 
-	$L->info("Skipping '$tid', reusing old results if requested by other tasks");
+	$L->info("Skipping '$taskid', reusing old results if requested by other tasks");
 
     }else{
 
 	# resolve dependencies
 	$self->resolve_task($task);
 
-	$L->info("Running '$task': @{$task->cmd()}");
+	$L->info("Running '$taskid': @{$task->cmd()}");
 
 	$self->trace_task_results->{"$task"} = $task->run();
     }
@@ -156,8 +162,11 @@ sub run{
     return "$task";
 }
 
+=head2 resolve_task
 
-=head2 resolve_tasks
+$new->resolve_task($task);
+
+resolves given task and returns corresponding cmd
 
 =cut
 
@@ -177,57 +186,11 @@ sub resolve_task{
    return $cmd;
 }
 
-
-=head2 wildcard
-
-=cut
-
-sub wildcard{
-    my ($self, $tid, $p) = @_;
-    my ($tix, $rel, $idx, $res);
-
-    if(! $p){
-	return $tid; # this task
-    } # id
-    elsif(($id) = $p =~ /^\{([^\}]+)}$/){
-	$L->logdie("Unknown task id '$id'") unless exists $self->task_index->{$id};
-	return $id;
-    } # idx
-    elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
-        return $rel 
-	    ? $self->tasks->[$self->task_index->{$tid} - $idx]->id  # relative task idx
-	    : $self->tasks->[$self->task_index->{$idx}]->id;        # absolute task idx
-    } # bin
-    elsif($p =~ /^bin$/i){ # bin
-	return $RealBin.'/';
-    } # opt
-    elsif($p =~ /^opt([\{\[].*[\]\}])/){
-	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
-	$res = eval '$self->opt->'."$1";
-	return ref $res eq ARRAY ? "@$res" : $res;
-    } # res
-    elsif(($type, $id_idx, $res) = $p =~ /^res
-		(\[-|\{|\[)		# [- or [ or {
-		([^\}\]]+)[\}\]]	# not ] or }, ] or }
-		(.*)?/x			# result access
-	){
-	my $id;
-
-	# idx, abs/rel
-	$id = $self->tasks->[$self->task_index->{$tid} - $id_idx]->id if $type eq '[-';
-	$id = $self->tasks->[$self->task_index->{$id_idx}]->id if $type eq '[';
-	$id = $id_idx if $type eq '{';
-
-    	return $res ? eval '$self->trace_task_results->'."{$id}".$res : eval '$self->trace_task_results->'."{$id}";
-    }else{
-	$L->logdie("unknown pattern $p");
-    }
-}
-
-
 =head2 init_trace
 
-Initialize a persitent trace. Implemented with 'Storable'.
+$new->init_trace();
+
+Initialize a persistent trace, implemented with 'Storable'. 
 
 =cut
 
@@ -236,61 +199,73 @@ sub init_trace{
 
     $self->trace_init_time(time());
     $self->trace_update_time(time());
-
-    store($self->trace, $self->trace_file)
-    	|| $L->logdie("Cannot create trace file: ".$self->trace_file);
-    return $self->trace;
+    
+    #$self->trace_file($self->id.".trace") unless $self->trace_file;
+    
+    store($self->_trace, $self->trace_file)
+	|| $L->logdie("Cannot create trace file: ".$self->trace_file);
+    return $self->_trace;
 }
 
 =head2 load_trace
 
-Load persistent trace.
+load_trace() loads persistent trace.
 
 =cut
 
-sub load_trace{
+sub load_trace {
     my ($self, $continue) = @_;
-    -e $self->trace_file
-	? $self->trace(retrieve($self->trace_file))
-	: $self->init_trace;
+    if (-e $self->trace_file) {
+	my $inputdata;
+	eval { $inputdata = retrieve($self->trace_file) };
+	if ($@) {
+	    $L->logdie("An unexpected error occured while trying to load file");
+	} else {
+	    $L->info("Import file: trace from file");
+	    $self->_trace($inputdata)
+	}
+    } else {
+	$self->init_trace;
+    }
 
     if(! defined($self->trace_task_done) || ! length $self->trace_task_done){
-	$self->task_iter(0);
+	$self->_task_iter(0);
 	$L->info("Running ",$self->id," from the beginning, no previous runs detected.");
-	return $self->trace;
+	return $self->_trace;
     }
 
     if(defined($continue) && length $continue){ # continue from specific task
-	if(exists $self->task_index->{$continue}){
- 	    if($self->task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->previous_task($continue)}){
-		$L->logdie("You want to continue from '$continue', however the previous task ".$self->task_index->{$continue-1}." never finished. Use force to overrule");
+	if(exists $self->_task_index->{$continue}){
+ 	    if($self->_task_index->{$continue} && ! $self->force && ! exists $self->trace_task_results->{$self->_task_index->{$continue} -1}){
+		$L->logdie("You want to continue from '$continue', however the previous task ".($self->_task_index->{$continue} -1) ." never finished. Use force to overrule");
 	    }
 	    
 	    $L->info("Continuing after task '", $continue, "'");
-	    $self->task_iter($self->task_index->{$continue});
+	    $self->_task_iter($self->_task_index->{$continue});
 
 	}else{
 	    $L->logdie("Cannot continue, task '", $continue, "' unknown");
 	}
     }else{ # continue from last completed task
-	if(exists $self->task_index->{$self->trace_task_done}){
-	    if($self->task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
+	if(exists $self->_task_index->{$self->trace_task_done}){
+	    if($self->_task_index->{$self->trace_task_done} +1 >= @{$self->tasks}){
 		$L->logdie("Complete ",$self->id," run present, disable --continue to restart");
 	    }
 
 	    $L->info("Unfinished ",$self->id," run present, continuing after task '", $self->trace_task_done, "'");
-	    $self->task_iter($self->task_index->{$self->trace_task_done} + 1);
+	    $self->_task_iter($self->_task_index->{$self->trace_task_done} + 1);
 
 	}else{
 	    $L->logdie("Cannot continue, previous ",$self->id," run ended with task '", $self->trace_task_done, "', which is not part of the current task sequence");
 	}
     }
-    return $self->trace;
+    return $self->_trace;
 }
+
 
 =head2 update_trace
 
-Store latest pipeline status to trace.
+update_trace() stores latest pipeline status in .trace file
 
 =cut
 
@@ -299,219 +274,286 @@ sub update_trace{
 
     $self->trace_update_time(time());
     $self->trace_task_done($self->current_task->id);
-    store($self->trace, $self->trace_file)
-    	|| $L->logdie("Cannot store updated trace file: ".$self->trace_file);
-    return $self->trace;
+    store($self->_trace, $self->trace_file)
+	|| $L->logdie("Cannot store updated trace file: ".$self->trace_file);
+    return $self->_trace;
 }
 
 =head2 current_task
 
-Get the current task, uses $self->task_iter to determine current
-pipeline status.
+current_task() gets the current task and determines current pipeline status with $self->task_iter
 
 =cut
 
 sub current_task{
     my ($self) = @_;
-    return $self->tasks->[$self->task_iter];
+    return $self->tasks->[$self->_task_iter];
 }
 
-=head2 previous_task
+=head2 wildcard
 
-Get the previous task of a) the current task, if called without args,
-or the provided task id.
+wildcard() checks tasks for patterns and dies in doubt of non_identifyable tasks.
 
 =cut
-
-sub previous_task{
-    my ($self, $task) = @_;
-    $task = $self->current_task unless $task;
-    my $tid = ref $task ? $task->id : $task;
-    my $tdx = $self->task_index->{$tid}-1; # no task befor first task
     
-    return $tdx < 0 ? undef : $self->tasks->[$tdx];
+sub wildcard{
+    my ($self, $tid, $p) = @_;
+    my ($tix, $rel, $idx, $res);
+
+    if(! $p){
+	return $tid; # this task
+    } # id
+    elsif((my $id) = $p =~ /^\{([^\}]+)}$/){
+	$L->logdie("Unknown task id '$id'") unless exists $self->_task_index->{$id};
+	return $id;
+    } # idx
+    elsif(($rel, $idx) = $p =~ /^\[(-)?(\d+)\]$/){
+        my $return_idx;
+	if ($rel) {
+	    $return_idx = $self->tasks->[$self->_task_index->{$tid} - $idx]->id; #relative path
+	}
+	else {
+	    $return_idx = $self->tasks->[$idx]->id; #absolute path
+	}
+	
+	return $return_idx;
+	  
+    } # bin
+    elsif($p =~ /^bin$/i){ # bin
+	return $RealBin.'/';
+    } # opt
+    elsif($p =~ /^opt([\{\[].*[\]\}])/){
+	$L->logdie("$p does not exist") unless eval 'exists $self->opt->'."$1";
+	$res = eval '$self->opt->'."$1";
+	my $return_opt;
+	if (ref $res eq 'ARRAY') {
+	    $return_opt = "@$res";
+	}
+	else {
+	    $return_opt = $res;
+	}
+	return $return_opt;
+	
+    } # res
+    elsif((my $type, my $id_idx, $res) = $p =~ /^res
+		(\[-|\{|\[)		# [- or [ or {
+		([^\}\]]+)[\}\]]	# not ] or }, ] or }
+		(.*)?/x			# result access
+	){
+	my $id;
+
+	# idx, abs/rel
+	if($type eq '[-') {
+	    $id = $self->tasks->[$self->_task_index->{$tid} - $id_idx]->id;
+	}
+	if($type eq '[') {
+	    $id = $self->tasks->[$id_idx]->id;
+	}
+
+	if($type eq '{') {
+	    $id = $id_idx;
+	}
+	
+	my $returnval = $self->trace_task_results->{$id};
+	if($res) {
+	    $returnval .= $res;
+	}	   
+	return $returnval;
+	  	
+    }else{
+	$L->logdie("unknown pattern $p");
+    }
 }
 
-##----------------------------------------------------------------------------##
-#Accessors
+#---------<<<<<<<<<#####################>>>>>>>>>---------#
+#---------<<<<<<<<<###---accessors---###>>>>>>>>>---------#
+#---------<<<<<<<<<#####################>>>>>>>>>---------#                           
 
+# Basic accessors are provided by Moose. See Moose manual for further explanations.
+               
+=head1 ACCESSORS
+=cut
 =head2 id
 
-=cut
+$new->id() get
+$new->id($id) set
+set and get id in the object
 
-sub id{
-    my ($self, $id, $force) = @_;
-    if(defined($id) || $force){
-	$self->{id} = $id;
-    }
-    return $self->{id};
-}
+=cut
 
 =head2 tasks
 
-=cut
+$new->tasks() get
+$new->tasks($tasks) set
+set and get tasks in the object
 
-sub tasks{
-    my ($self, $tasks, $force) = @_;
-    if(defined($tasks) || $force){
-	$self->{tasks} = $tasks;
-    }
-    return $self->{tasks};
-}
+=cut
 
 =head2 opt
 
-=cut
+$new->opt() get
+$new->opt($opt) set
+set and get options in the object
 
-sub opt{
-    my ($self, $opt, $force) = @_;
-    if(defined($opt) ||  $force){
-	$self->{opt} = $opt;
-    }
-    return $self->{opt};
-}
+=cut
 
 =head2 task_index
 
-=cut
+$new->task_index() get
+$new->task_index($task_index) set
+set and get task indicies
 
-sub task_index{
-    my ($self, $task_index, $force) = @_;
-    if(defined($task_index) || $force){
-	$self->{_task_index} = $task_index;
-    }
-    return $self->{_task_index};
-}
+=cut
 
 =head2 skip
 
-=cut
+$new->skip() get
+$new->skip($skip) set
+set and get tasks that shall not be run
 
-sub skip{
-    my ($self, $skip, $force) = @_;
-    if(defined($skip) || $force){
-	$self->{skip} = $skip;
-    }
-    return $self->{skip};
-}
+=cut
 
 =head2 continue
 
-=cut
-
-sub continue{
-    my ($self, $continue, $force) = @_;
-    if(defined($continue) || $force){
-	$self->{continue} = $continue;
-    }
-    return $self->{continue};
-}
-
-=head2 
+$new->continue() get
+$new->continue($continue) set
+set and get task after that shall be continued
 
 =cut
 
-sub task_iter{
-    my ($self, $task_iter, $force) = @_;
-    if(defined($task_iter) || $force){
-	$self->{_task_iter} = $task_iter;
-    }
-    return $self->{_task_iter};
-}
+=head2 task_iter
+
+$new->task_iter() get
+$new->task_iter($task_iter) set
+set and get iteration of the current task
+
+=cut
 
 =head2 force
 
-=cut
+$new->force() get
+$new->force($force) set
+set and get if a task shall be forced 
 
-sub force{
-    my ($self, $force, $force) = @_;
-    if(defined($force) || $force){
-	$self->{force} = $force;
-    }
-    return $self->{force};
-}
+=cut
 
 =head2 trace_file
 
-=cut
+$new->trace_file() get
+$new->trace_file($trace_file) set
+set and get file trace 
 
-sub trace_file{
-    my ($self, $trace_file, $force) = @_;
-    if(defined($trace_file) || $force){
-	$self->{trace_file} = $trace_file;
-    }
-    return $self->{trace_file};
-}
+=cut
 
 =head2 trace
 
+$new->trace() get
+$new->trace($trace) set
+set and get _trace
+_trace contains task_results, init_time, update_time, task_done
+
 =cut
 
-sub trace{
-    my ($self, $trace, $force) = @_;
-    if(defined($trace || $force)){
-	$self->{_trace} = $trace;
-    }
-    return $self->{_trace};
-    # privates
-    for my $acc (qw(trace task task_index)){
-	can_ok($Class, $acc);
-	my $cache;
-	is(($cache = $o->$acc), $o->{'_'.$acc}, $Class."->".$acc." get");
-	is($o->$acc("wtf"), "wtf", $Class."->".$acc." set");
-	is($o->$acc(undef,1), undef, $Class."->".$acc." unset");
-	is($o->$acc($cache), $o->{'_'.$acc}, $Class."->".$acc." reset");
-    }
-}
-
 =head2 trace_task_results
+
+$new->trace_task_results() get
+$new->trace_task_results($task_results) set
+set and get task_results
 
 =cut
 
 sub trace_task_results{
-    my ($self, $trace_task_results, $force) = @_;
-    if(defined($trace_task_results || $force)){
-	$self->trace->{task_results} = $trace_task_results;
+    my $self = shift;
+    #test if additional parameters provided given 
+    if (@_) {
+	my $trace_task_results = shift;
+	$self->_trace->{task_results} = $trace_task_results;
     }
-    return $self->trace->{task_results};
+    return $self->_trace->{task_results};
+
 }
 
 =head2 trace_update_time
 
+$new->trace_update_time() get
+$new->trace_update_time($trace_update_time) set
+set and get update of time trace
+
 =cut
 
 sub trace_update_time{
-    my ($self, $trace_update_time, $force) = @_;
-    if(defined($trace_update_time) || $force){
-	$self->trace->{update_time} = $trace_update_time;
+    
+    my $self = shift;
+    if (@_) {
+	my $trace_update_time = shift;
+	$self->_trace->{update_time} = $trace_update_time;
     }
-    return $self->trace->{update_time};
+    return $self->_trace->{update_time};
+
 }
 
 =head2 trace_init_time
 
+$new->trace_init_time() get
+$new->trace_init_time($trace_init_time) get
+set and get initial time trace
+
 =cut
 
 sub trace_init_time{
-    my ($self, $trace_init_time, $force) = @_;
-    if(defined($trace_init_time) || $force){
-	$self->trace->{init_time} = $trace_init_time;
+    my $self = shift;
+    if (@_) {
+	my $trace_init_time = shift;
+	$self->_trace->{init_time} = $trace_init_time;
     }
-    return $self->trace->{init_time};
+    return $self->_trace->{init_time};
+
 }
 
 =head2 trace_task_done
 
+$new->trace_task_done() get
+$new->trace_task_done($trace_task_done) set
+set and get trace of completed tasks
+
 =cut
 
 sub trace_task_done{
-    my ($self, $task_done, $force) = @_;
-    if(defined($task_done) || $force){
-	$self->trace->{task_done} = $task_done;
+    my $self = shift;
+    if (@_) {
+	my $trace_task_done = shift;
+        $self->_trace->{task_done} = $trace_task_done;
     }
-    return $self->trace->{task_done};
+    return $self->_trace->{task_done};
+
 }
 
-
 1;
+__END__
 
+#---------<<<<<<<<<#####################>>>>>>>>>---------#
+#---------<<<<<<<<<###---COPYRIGHT---###>>>>>>>>>---------#
+#---------<<<<<<<<<###------AND-----###>>>>>>>>>---------#
+#---------<<<<<<<<<###----LICENSE----###>>>>>>>>>---------#                                         
+#---------<<<<<<<<<#####################>>>>>>>>>---------#                                         
+
+=head1 SEE ALSO                                                                 
+Mention other use  
+
+=head1 AUTHOR
+
+Thomas Hackl, E<lt>mail<gt>\n
+Frank Förster, E<lt>mail<gt>\n
+Simon Pfaff, E<lt>simon.pfaff@stud-mail.uni-wuerzburg.de<gt>\n
+Aaron Sigmund, E<lt>aaron.sigmund@stud-mail.uni-wuerzburg.de<gt>\n
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2016 by CCTB UniWuerzburg
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.18.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut
