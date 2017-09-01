@@ -14,7 +14,7 @@ use Log::Log4perl; #qw(:no_extra_logdie_message);
 
 #our @ISA = qw();
 
-our $VERSION = '0.1';
+our $VERSION = '0.9';
 
 my $L = Log::Log4perl::get_logger();
 
