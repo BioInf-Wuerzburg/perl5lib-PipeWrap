@@ -6,9 +6,9 @@ WriteMakefile(
     NAME              => 'PipeWrap',
     VERSION_FROM      => 'lib/PipeWrap.pm', # finds $VERSION
     PREREQ_PM         => {
-	                      Test::Class::Moose => undef,
-			      Log::Log4perl => undef,
-			      Moose => undef,
+	                      Test::Class::Moose 	=> 0,
+			      Log::Log4perl 		=> 0,
+			      Moose 			=> 0,
 			      
                          }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
