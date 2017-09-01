@@ -10,7 +10,7 @@ use Data::Dumper;
 
 #---------globals---------#
 
-our $VERSION = '0.1';
+our $VERSION = '0.9';
 
 my $L = Log::Log4perl::get_logger();
 

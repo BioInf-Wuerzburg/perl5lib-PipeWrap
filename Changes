@@ -2,5 +2,8 @@ Revision history for Perl extension PipeWrap.
 
 0.1  Wed Nov 16 13:18:12 2016
 	- original version; created by h2xs 1.23 with options
-		-A -X -b 5.10.1 -n PipeWrap --use-new-tests --skip-exporter -v 0.1
+		-A -X -b 5.10.1 -n PipeWrap --use-new-tests --skip-exporter -v
+
+0.9 Fri Sep 01 2017
+    	- First release after refactoring with Moose and several bug fixes.
 
