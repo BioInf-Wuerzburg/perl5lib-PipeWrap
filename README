@@ -1,0 +1,42 @@
+PipeWrap version 0.9
+====================
+
+PipeWrap - Checkpoint system for perl modules.
+Used in chloroExtractor, a scientific tool for extraction of chloroplast dna out of a whole plant genome.
+
+LATEST CHANGES
+
+V 0.9 Fri, Sep 01. 2017: Refactored PipeWrap with perlmodule Moose, with several bugfixes included.
+
+INSTALLATION
+
+To install this module type the following:
+
+   git clone https://github.com/BioInf-Wuerzburg/perl5lib-PipeWrap
+
+   cd perl5lib-PipeWrap
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+  Moose
+  Log4Perl
+  Test::Class::Moose
+  
+
+COPYRIGHT AND LICENCE
+
+
+Copyright (C) 2017 by CCTB Uni Wuerzburg. Thomas Hackl, Frank Förster, Simon Pfaff & Aaron Sigmund
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.18.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+

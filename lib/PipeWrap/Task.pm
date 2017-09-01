@@ -1,58 +1,51 @@
 package PipeWrap::Task;
 
-use Log::Log4perl qw(:easy :no_extra_logdie_message);
-use overload '""' => \&id;
+use 5.010001;
+
+use Moose;
+use Log::Log4perl;
 use Data::Dumper;
 
-#-----------------------------------------------------------------------------#
-# Globals
+#our @ISA = qw();
 
-our $VERSION = '0.01';
+#---------globals---------#
+
+our $VERSION = '0.9';
 
 my $L = Log::Log4perl::get_logger();
 
+=head1 NAME
 
+PipeWrap::Task - 
 
-#-----------------------------------------------------------------------------#
+=head1 SYNOPSIS
+
+    use PipeWrap::Task;
+
+=head1 DESCRIPTION
+
+Checkpoint system that supervises a given order of tasks given by a config file.
+
 =head2 new
+
+    PipeWrap::Task::new();
+
+new() creates PipeWrap task object
 
 =cut
 
-sub new{
-
-    $L->debug("initiating ".__PACKAGE__." object");
-
-    my $proto = shift;
-    my $self;
-    my $class;
-    
-    # object method -> clone + overwrite
-    if($class = ref $proto){ 
-	return bless ({%$proto, @_}, $class);
-    }
-
-    # class method -> construct + overwrite
-    # init empty obj
-    $self = {
-	id => '',
-	cmd => [],
-	parser => undef,
-	# overwrite
-	@_,
-	# protected privates
-    };
-
-    bless $self, $proto;    
-
-    return $self;
-}
-
+has 'id' => (is =>'rw', isa => 'Any', default => '');
+has 'cmd' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'parser' => (is => 'rw', isa => 'Any', default => undef);
 
 =head2 run
 
+$new->run()
+gets tasks from object and calls corresponding command
+
 =cut
 
-sub run{
+sub run {
     my ($self) = @_;
     # run task
     open(my $cmdh, "@{$self->cmd()} |") or $L->logdie($!);
@@ -73,32 +66,31 @@ sub run{
     close $cmdh;
     $L->logcroak($self->id." exited:$? $@\n", $re) if ($? || $@);
     
-    $L->debug("$self returned:\n",  ref $re ? Dumper($re) : $re);
+    $L->debug($self->id."returned:\n",  ref $re ? Dumper($re) : $re);
 
     return $re;
 }
 
-
 =head2 parse_raw
 
-Simple parser that reads the entire output of the filehandle to a
-string.
+$new->parse_raw($FH)
+simple parser that reads the entire output of a FH to a string
 
 =cut
 
-sub parse_raw{
+sub parse_raw {
     my ($self, $fh) = @_;
     return scalar do{local $/; <$fh>}
 }
 
-
 =head2 parse_csv
 
-Simple parser that splits whitespace separated output into a hash.
+$new->parse_csv($FH)
+simple parser that splits whitespace separated output into a hash
 
 =cut
 
-sub parse_csv{
+sub parse_csv {
     my ($self, $fh) = @_;
     my %re;
     while(<$fh>){
@@ -109,53 +101,28 @@ sub parse_csv{
     return \%re;
 }
 
-
-
-##----------------------------------------------------------------------------##
-#Accessors
+=head1 ACCESSORS
+=cut
 
 =head2 cmd
 
-Get/set command.
+$new->cmd() get command
+$new->cmd($cmd) set $cmd
 
 =cut
-
-sub cmd{
-    my ($self, $cmd, $force) = @_;
-    if(defined($cmd) || $force){
-	$self->{cmd} = $cmd;
-    }
-    return $self->{cmd};
-}
-
 
 =head2 id
 
-Get/set id.
+$new->id() get id
+$new->id($id) set id
 
 =cut
-
-sub id{
-    my ($self, $id, $force) = @_;
-    if(defined($id) || $force){
-	$self->{id} = $id;
-    }
-    return $self->{id};
-}
 
 =head2 parser
 
-Get/set result parser
+$new->parser() get result parser
+$new->parser($parser) set result parser
 
 =cut
-
-sub parser{
-    my ($self, $parser, $force) = @_;
-    if(defined($parser) || $force){
-	$self->{parser} = $parser;
-    }
-    return $self->{parser};
-}
-
 1;
-
+__END__

@@ -10,6 +10,8 @@ sudo:
   false
 install:
     - perl -v
-    - cpanm -L cpanmlibs Log::Log4perl
+    - cpanm .
 script: 
-    - perl -Ilib -Icpanmlibs/lib/perl5 t/*.t
+    - perl Makefile.PL
+    - make 
+    - make test
