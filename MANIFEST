@@ -11,5 +11,6 @@ t/PipeWrap_run.t
 t/PipeWrap_run2.t
 t/PipeWrap_wildcard.t
 t/PipeWrap_Task.t
+t/PipeWrap_continue.t
 lib/PipeWrap.pm
 lib/PipeWrap/Task.pm
